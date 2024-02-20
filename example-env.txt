@@ -1,0 +1,19 @@
+# Server Port
+PORT=8000
+
+# Node Environment (e.g., development, production)
+NODE_ENV=development
+
+# GitHub Credentials
+GITHUB_USER_NAME=your_username
+GITHUB_API_TOKEN=your_api_token
+
+# Database Configuration (MongoDB)
+DATABASE_PASSWORD=your_database_password
+DATABASE_USERNAME=your_database_username
+DATABASE_URL=your_database_url
+
+# Email Service Provider Credentials
+EMAIL_PROVIDER_PASSWORD=your_email_provider_password
+EMAIL_PROVIDER_USERNAME=your_email_provider_username
+JWT_SECRET = secret_key;
