@@ -32,3 +32,40 @@ export const getAudioById = async (req: Request, res: Response) => {
   }
 };
 
+export const addAudio = async (req: Request, res: Response) => {
+  try {
+    const { file_name, file_path, upload_date, uploader_id, file_type_id, avg_rating, metadata, visible } = req.body;
+
+    // Получаем максимальное значение file_id из базы данных
+    const maxFileId = await db.oneOrNone('SELECT MAX(file_id) FROM public.multimediafile');
+    let newFileId = maxFileId ? maxFileId.max + 1 : 1; // Увеличиваем его на единицу для нового file_id
+
+    const newAudio = await db.one(
+      'INSERT INTO public.multimediafile (file_id, file_name, file_path, upload_date, uploader_id, file_type_id, avg_rating, metadata, visible) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING file_id;',
+      [newFileId, file_name, file_path, upload_date, uploader_id, file_type_id, avg_rating, metadata, visible]
+    );
+    res.status(201).json({ status: 'success', data: { newAudio } });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: `Failed to add audio with file_id: ${req.body.file_id || 'undefined'}`, error: error.message });
+  }
+};
+
+export const deleteAudioById = async (req: Request, res: Response) => {
+  try {
+    const fileId = parseInt(req.params.fileId); // Получаем file_id из параметра запроса
+
+    // Проверяем, существует ли аудио с указанным file_id
+    const existingAudio = await db.oneOrNone('SELECT * FROM public.multimediafile WHERE file_id = $1', [fileId]);
+    if (!existingAudio) {
+      return res.status(404).json({ status: 'error', message: 'Audio not found' });
+    }
+
+    // Удаляем аудио из базы данных
+    await db.none('DELETE FROM public.multimediafile WHERE file_id = $1', [fileId]);
+
+    res.status(200).json({ status: 'success', message: 'Audio deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Failed to delete Audio', error: error.message });
+  }
+};
+
