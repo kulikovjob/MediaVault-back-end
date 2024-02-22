@@ -1,70 +1,57 @@
-/* eslint-disable import/prefer-default-export */
-import { Request, Response } from 'express';
-// eslint-disable-next-line import/no-extraneous-dependencies
-// @ts-ignore
-import pg from 'pg-promise';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { NextFunction, Request, Response } from 'express';
+import { File as ImageType } from '../types/types';
+import { ImageModel } from '../models/imageModel';
+import { catchAsync } from '../utils/catchAsync';
+import { AppError } from '../utils/appError';
 
-const pgp = pg({});
-const url = 'postgres://postgres:Zereso23@localhost:5431/MediaVault';
-const db = pgp(url);
+const Image = new ImageModel();
 
-export const getAllImages = async (req: Request, res: Response) => {
-  const images = await db.manyOrNone(
-    'SELECT file_id, file_name, file_path, upload_date, uploader_id, file_type_id, avg_rating, metadata, visible FROM public.multimediafile WHERE file_type_id = 1;',
-  );
+interface RequestParams {
+  fileId: string;
+}
 
-  res
-    .status(200)
-    .json({ status: 'success', length: images.length, data: { images } });
-};
+export const getAllImages = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const images = await Image.getAllImages();
 
-export const getImageById = async (req: Request, res: Response) => {
-  const fileId = parseInt(req.params.fileId); // Получаем file_id из параметра запроса
-  const image = await db.oneOrNone(
-    'SELECT file_id, file_name, file_path, upload_date, uploader_id, file_type_id, avg_rating, metadata, visible FROM public.multimediafile WHERE file_type_id = 1 AND file_id = $1;',
-    fileId // Передаем file_id как параметр запроса
-  );
+    res
+      .status(200)
+      .json({ status: 'success', length: images.length, data: { images } });
+  },
+);
 
-  if (image) {
-    res.status(200).json({ status: 'success', data: { image } });
-  } else {
-    res.status(404).json({ status: 'error', message: 'Image not found or file type is not 1' });
-  }
-};
+export const getImageById = catchAsync(
+  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+    const image = await Image.getSingleImage(req.params.fileId);
 
-export const addImage = async (req: Request, res: Response) => {
-  try {
-    const { file_name, file_path, upload_date, uploader_id, file_type_id, avg_rating, metadata, visible } = req.body;
-
-    // Получаем максимальное значение file_id из базы данных
-    const maxFileId = await db.oneOrNone('SELECT MAX(file_id) FROM public.multimediafile');
-    let newFileId = maxFileId ? maxFileId.max + 1 : 1; // Увеличиваем его на единицу для нового file_id
-
-    const newImage = await db.one(
-      'INSERT INTO public.multimediafile (file_id, file_name, file_path, upload_date, uploader_id, file_type_id, avg_rating, metadata, visible) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING file_id;',
-      [newFileId, file_name, file_path, upload_date, uploader_id, file_type_id, avg_rating, metadata, visible]
-    );
-    res.status(201).json({ status: 'success', data: { newImage } });
-  } catch (error) {
-    res.status(500).json({ status: 'error', message: `Failed to add image with file_id: ${req.body.file_id || 'undefined'}`, error: error.message });
-  }
-};
-
-export const deleteImageById = async (req: Request, res: Response) => {
-  try {
-    const fileId = parseInt(req.params.fileId); // Получаем file_id из параметра запроса
-
-    // Проверяем, существует ли image с указанным file_id
-    const existingImage = await db.oneOrNone('SELECT * FROM public.multimediafile WHERE file_id = $1', [fileId]);
-    if (!existingImage) {
-      return res.status(404).json({ status: 'error', message: 'Image not found' });
+    if (!image) {
+      return next(new AppError('Image not found or file type is not 1', 404));
     }
 
-    // Удаляем image из базы данных
-    await db.none('DELETE FROM public.multimediafile WHERE file_id = $1', [fileId]);
+    res.status(200).json({ status: 'success', data: { image } });
+  },
+);
 
-    res.status(200).json({ status: 'success', message: 'Image deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ status: 'error', message: 'Failed to delete Image', error: error.message });
-  }
-};
+export const addImage = catchAsync(
+  async (
+    req: Request<object, object, Partial<ImageType>>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const maxFileId = await Image.getId();
+    const newFileId = maxFileId ? maxFileId.max + 1 : 1;
+    const newImage = await Image.addNewImage({ id: newFileId, ...req.body });
+    res.status(201).json({ status: 'success', data: { newImage } });
+  },
+);
+
+export const deleteImageById = catchAsync(
+  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+    await Image.deleteImageById(req.params.fileId);
+
+    res
+      .status(200)
+      .json({ status: 'success', message: 'Image deleted successfully' });
+  },
+);

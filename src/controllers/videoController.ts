@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextFunction, Request, Response } from 'express';
-import { Video as VideoType } from '../types/types';
+import { File as VideoType } from '../types/types';
 import { VideoModel } from '../models/videoModel';
 import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/appError';
 
 const Video = new VideoModel();
+
+interface RequestParams {
+  fileId: string;
+}
 
 export const getAllVideos = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -16,10 +20,6 @@ export const getAllVideos = catchAsync(
       .json({ status: 'success', length: videos.length, data: { videos } });
   },
 );
-
-interface RequestParams {
-  fileId: string;
-}
 
 export const getVideoById = catchAsync(
   async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
@@ -41,7 +41,7 @@ export const addVideo = catchAsync(
   ) => {
     const maxFileId = await Video.getId();
     const newFileId = maxFileId ? maxFileId.max + 1 : 1;
-    const newVideo = await Video.addNewVideo({ ...req.body, id: newFileId });
+    const newVideo = await Video.addNewVideo({id: newFileId, ...req.body });
     res.status(201).json({ status: 'success', data: { newVideo } });
   },
 );
