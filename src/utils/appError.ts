@@ -6,6 +6,14 @@ export class AppError extends Error {
 
   isOperational: boolean;
 
+  path?: string;
+
+  value?: string;
+
+  code?: number;
+
+  errmsg?: string;
+
   constructor(message: string, statusCode: number) {
     super(message);
 
