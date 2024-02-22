@@ -10,7 +10,7 @@ export enum ApplicationPhaces {
   Production = 'production',
 }
 
-export interface Video {
+export interface File {
   file_name: string;
   file_path: string;
   upload_date: Date;

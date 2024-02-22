@@ -1,7 +1,7 @@
 import pgPromise, { IDatabase } from 'pg-promise';
 import { IClient } from 'pg-promise/typescript/pg-subset';
 import dotenv from 'dotenv';
-import { MediaTypes, Video } from '../types/types';
+import { MediaTypes, File } from '../types/types';
 import { getDatabaseConnectionUrl } from '../utils/databaseUtils';
 
 dotenv.config({ path: './.env' });
@@ -28,10 +28,10 @@ export class VideoModel {
     );
   }
 
-  async addNewVideo(data: Partial<Video>) {
+  async addNewVideo(data: Partial<File>) {
     return this.db.one(
       'INSERT INTO public.multimediafile (file_id, file_name, file_path, upload_date, uploader_id, file_type_id, avg_rating, metadata, visible) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING file_id;',
-      [data],
+      [...Object.values(data)],
     );
   }
 
