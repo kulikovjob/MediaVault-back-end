@@ -55,3 +55,24 @@ export const deleteAudioById = catchAsync(
       .json({ status: 'success', message: 'Audio deleted successfully' });
   },
 );
+
+export const updateAudioById = catchAsync(
+  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+    const { fileId } = req.params;
+    const newData = req.body;
+
+    if (!Object.keys(newData).length) {
+      return res.status(400).json({ status: 'error', message: 'No data provided for update' });
+    }
+
+    const audio = await Audio.getSingleAudio(req.params.fileId);
+
+    if (!audio) {
+      return next(new AppError('Audio not found or file type is not 3', 404));
+    }
+
+    const updatedAudio = await Audio.updateAudioById(fileId, newData);
+
+    res.status(200).json({ status: 'success', data: { audio: updatedAudio } });
+  }
+);

@@ -1,19 +1,12 @@
-import pgPromise, { IDatabase } from 'pg-promise';
-import { IClient } from 'pg-promise/typescript/pg-subset';
 import dotenv from 'dotenv';
 import { MediaTypes, File } from '../types/types';
-import { getDatabaseConnectionUrl } from '../utils/databaseUtils';
+import { getDatabaseInstance } from '../utils/databaseUtils';
 
 dotenv.config({ path: './.env' });
 
 // eslint-disable-next-line import/prefer-default-export
 export class ImageModel {
-  db: IDatabase<object, IClient>;
-
-  constructor() {
-    const url = getDatabaseConnectionUrl();
-    this.db = pgPromise()(url);
-  }
+  db = getDatabaseInstance()
 
   async getAllImages() {
     return this.db.manyOrNone(
@@ -39,6 +32,23 @@ export class ImageModel {
     return this.db.none(
       'DELETE FROM public.multimediafile WHERE file_id = $1',
       [id],
+    );
+  }
+
+  async updateImageById(fileId: string, newData: Partial<File>) {
+    return this.db.one(
+      `
+        UPDATE public.multimediafile
+        SET
+          metadata = COALESCE(metadata, '{}'::jsonb) || $/metadata/
+          ${Object.keys(newData)
+        .filter(key => key !== 'metadata')
+        .map(key => `${key} = $/${key}/`)
+        .join(', ')}
+        WHERE file_id = $/fileId/
+        RETURNING *;
+      `,
+      { fileId, ...newData }
     );
   }
 
