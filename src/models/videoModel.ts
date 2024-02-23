@@ -1,19 +1,19 @@
-import pgPromise, { IDatabase } from 'pg-promise';
-import { IClient } from 'pg-promise/typescript/pg-subset';
+//import pgPromise, { IDatabase } from 'pg-promise';
+//import { IClient } from 'pg-promise/typescript/pg-subset';
 import dotenv from 'dotenv';
 import { MediaTypes, File } from '../types/types';
-import { getDatabaseConnectionUrl } from '../utils/databaseUtils';
+import { getDatabaseInstance } from '../utils/databaseUtils';
 
 dotenv.config({ path: './.env' });
 
 // eslint-disable-next-line import/prefer-default-export
 export class VideoModel {
-  db: IDatabase<object, IClient>;
-
-  constructor() {
-    const url = getDatabaseConnectionUrl();
-    this.db = pgPromise()(url);
-  }
+  db = getDatabaseInstance()
+  //
+  // constructor() {
+  //   const url = getDatabaseConnectionUrl();
+  //   this.db = pgPromise()(url);
+  // }
 
   async getAllVideos() {
     return this.db.manyOrNone(
@@ -30,7 +30,7 @@ export class VideoModel {
 
   async addNewVideo(data: Partial<File>) {
     return this.db.one(
-      'INSERT INTO public.multimediafile (file_id, file_name, file_path, upload_date, uploader_id, file_type_id, avg_rating, metadata, visible) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING file_id;',
+      `INSERT INTO public.multimediafile (file_id, file_name, file_path, upload_date, uploader_id, file_type_id, avg_rating, metadata, visible) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING file_id;`,
       [...Object.values(data)],
     );
   }
@@ -45,4 +45,22 @@ export class VideoModel {
   async getId() {
     return this.db.oneOrNone('SELECT MAX(file_id) FROM public.multimediafile');
   }
+
+  async updateVideoById(fileId: string, newData: Partial<File>) {
+    return this.db.one(
+      `
+        UPDATE public.multimediafile
+        SET
+          metadata = COALESCE(metadata, '{}'::jsonb) || $/metadata/
+          ${Object.keys(newData)
+            .filter(key => key !== 'metadata')
+            .map(key => `${key} = $/${key}/`)
+            .join(', ')}
+        WHERE file_id = $/fileId/
+        RETURNING *;
+      `,
+      { fileId, ...newData }
+    );
+  }
 }
+

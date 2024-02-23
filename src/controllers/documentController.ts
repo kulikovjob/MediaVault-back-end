@@ -54,3 +54,24 @@ export const deleteDocumentById = catchAsync(
       .json({ status: 'success', message: 'Document deleted successfully' });
   },
 );
+
+export const updateDocumentById = catchAsync(
+  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+    const { fileId } = req.params;
+    const newData = req.body;
+
+    if (!Object.keys(newData).length) {
+      return res.status(400).json({ status: 'error', message: 'No data provided for update' });
+    }
+
+    const document = await Document.getSingleDocument(req.params.fileId);
+
+    if (!document) {
+      return next(new AppError('Document not found or file type is not 4', 404));
+    }
+
+    const updatedDocument = await Document.updateDocumentById(fileId, newData);
+
+    res.status(200).json({ status: 'success', data: { document: updatedDocument } });
+  }
+);

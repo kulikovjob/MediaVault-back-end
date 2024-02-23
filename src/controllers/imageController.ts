@@ -55,3 +55,24 @@ export const deleteImageById = catchAsync(
       .json({ status: 'success', message: 'Image deleted successfully' });
   },
 );
+
+export const updateImageById = catchAsync(
+  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+    const { fileId } = req.params;
+    const newData = req.body;
+
+    if (!Object.keys(newData).length) {
+      return res.status(400).json({ status: 'error', message: 'No data provided for update' });
+    }
+
+    const image = await Image.getSingleImage(req.params.fileId);
+
+    if (!image) {
+      return next(new AppError('Image not found or file type is not 1', 404));
+    }
+
+    const updatedImage = await Image.updateImageById(fileId, newData);
+
+    res.status(200).json({ status: 'success', data: { image: updatedImage } });
+  }
+);

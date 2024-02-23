@@ -55,3 +55,24 @@ export const deleteVideoById = catchAsync(
       .json({ status: 'success', message: 'Video deleted successfully' });
   },
 );
+
+export const updateVideoById = catchAsync(
+  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+    const { fileId } = req.params;
+    const newData = req.body;
+
+    if (!Object.keys(newData).length) {
+      return res.status(400).json({ status: 'error', message: 'No data provided for update' });
+    }
+
+    const video = await Video.getSingleVideo(req.params.fileId);
+
+    if (!video) {
+      return next(new AppError('Video not found or file type is not 2', 404));
+    }
+
+    const updatedVideo = await Video.updateVideoById(fileId, newData);
+
+    res.status(200).json({ status: 'success', data: { video: updatedVideo } });
+  }
+);
