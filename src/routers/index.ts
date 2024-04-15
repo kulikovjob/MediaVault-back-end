@@ -1,0 +1,9 @@
+export { default as mediaRouter } from './mediaRouter';
+export { default as genreRouter } from './genreRouter';
+export { default as tagRouter } from './tagRouter';
+export { default as fileTypeRouter } from './fileTypeRouter';
+export { default as superMetadataRouter } from './superMetadataRouter';
+export { default as userRouter } from './userRouter';
+export { default as viewRouter } from './viewRouter';
+export { default as commentRouter } from './commentRouter';
+export { default as metadataRouter } from './metadataRouter';
