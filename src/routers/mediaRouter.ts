@@ -8,10 +8,11 @@ import {
   updateFile,
   connectToModel,
 } from '../controllers/mediaController';
+import { MediaModel } from '../models/mediaModel';
 
 const router = Router();
 
-router.use(connectToModel);
+router.use(connectToModel(MediaModel));
 
 // Media
 router.route('/files/').get(getAllMediaFilesInfo);

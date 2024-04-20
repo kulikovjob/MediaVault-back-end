@@ -1,19 +1,20 @@
 import { Router } from 'express';
 
-const router = Router();
-
 import {
   getAllUsers,
   getUserForCurrentUser,
   getUserById,
-  deleteUserById
+  deleteUserById,
 } from '../controllers/userController';
+import { connectToModel } from '../controllers/mediaController';
+import { UserModel } from '../models/userModel';
 
-router.route('/user/').get(getUserForCurrentUser)
-router.route('/users/')
-  .get(getAllUsers)
+const router = Router();
 
-router.route('/users/:userId')
-  .get(getUserById)
-  .delete(deleteUserById)
-export default router
+router.use(connectToModel(UserModel));
+
+router.route('/user/').get(getUserForCurrentUser);
+router.route('/users/').get(getAllUsers);
+
+router.route('/users/:userId').get(getUserById).delete(deleteUserById);
+export default router;

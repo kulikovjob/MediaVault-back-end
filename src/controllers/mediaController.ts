@@ -3,19 +3,21 @@ import { NextFunction, Request, Response } from 'express';
 import { MediaModel } from '../models/mediaModel';
 import { catchAsync } from '../utils/catchAsync';
 import { RequestWithAuth } from '../utils/databaseUtils';
+import { BaseModel } from '../models/baseModel';
 
 interface RequestParams {
   fileId: string;
   filetypeId: string;
 }
 
-export const connectToModel = (
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const connectToModel = (Model:any) => (
   req: RequestWithAuth,
   res: Response,
   next: NextFunction,
 ) => {
   const { password, host, name, port, username } = req.auth;
-  req.model = new MediaModel(password, host, name, port, username);
+  req.model = new Model(password, host, name, port, username);
   next();
 };
 

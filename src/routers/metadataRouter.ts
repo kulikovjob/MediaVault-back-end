@@ -7,15 +7,18 @@ import {
   getAllMetadataById,
   addNewMetadata,
   updateMetadata,
-  deleteMetadataById
+  deleteMetadataById,
 } from '../controllers/metadataController';
+import { connectToModel } from '../controllers/mediaController';
+import { MetadataModel } from '../models/metadataModel';
 
-router.route('/metadata/')
-  .get(getAllMetadata)
-  .post(addNewMetadata)
+router.use(connectToModel(MetadataModel));
 
-router.route('/metadata/:metadataId')
+router.route('/metadata/').get(getAllMetadata).post(addNewMetadata);
+
+router
+  .route('/metadata/:metadataId')
   .get(getAllMetadataById)
   .patch(updateMetadata)
-  .delete(deleteMetadataById)
+  .delete(deleteMetadataById);
 export default router;

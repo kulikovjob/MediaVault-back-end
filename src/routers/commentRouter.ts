@@ -1,21 +1,24 @@
 import { Router } from 'express';
 
-const router = Router();
-
 import {
   getAllComments,
   getCommentById,
   addNewComment,
   updateComment,
-  deleteCommentById
+  deleteCommentById,
 } from '../controllers/commentController';
+import { connectToModel } from '../controllers/mediaController';
+import { CommentModel } from '../models/commentModel';
 
-router.route('/comments/')
-  .get(getAllComments)
-  .post(addNewComment)
+const router = Router();
 
-router.route('/comments/:commentId')
+router.use(connectToModel(CommentModel));
+
+router.route('/comments/').get(getAllComments).post(addNewComment);
+
+router
+  .route('/comments/:commentId')
   .get(getCommentById)
   .patch(updateComment)
-  .delete(deleteCommentById)
+  .delete(deleteCommentById);
 export default router;

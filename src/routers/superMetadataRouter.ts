@@ -1,21 +1,27 @@
 import { Router } from 'express';
 
-const router = Router();
-
 import {
   getAllSuperMetadata,
   getSuperMetadataById,
   addNewSuperMetadata,
   updateSuperMetadata,
-  deleteSuperMetadataById
+  deleteSuperMetadataById,
 } from '../controllers/superMetadataController';
+import { connectToModel } from '../controllers/mediaController';
+import { SuperMetadataModel } from '../models/superMetadataModel';
 
-router.route('/supermetadata/')
+const router = Router();
+
+router.use(connectToModel(SuperMetadataModel));
+
+router
+  .route('/supermetadata/')
   .get(getAllSuperMetadata)
-  .post(addNewSuperMetadata)
+  .post(addNewSuperMetadata);
 
-router.route('/supermetadata/:superMetadataId')
+router
+  .route('/supermetadata/:superMetadataId')
   .get(getSuperMetadataById)
   .patch(updateSuperMetadata)
-  .delete(deleteSuperMetadataById)
+  .delete(deleteSuperMetadataById);
 export default router;

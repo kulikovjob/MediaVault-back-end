@@ -1,21 +1,24 @@
-import { Router } from 'express'
-
-const router = Router();
+import { Router } from 'express';
 
 import {
   getAllTags,
   getTagById,
   addNewTag,
   updateTag,
-  deleteTagById
+  deleteTagById,
 } from '../controllers/tagController';
+import { connectToModel } from '../controllers/mediaController';
+import { TagModel } from '../models/tagModel';
 
-router.route('/tags/')
-  .get(getAllTags)
-  .post(addNewTag)
+const router = Router();
 
-router.route('/tags/:tagId')
+router.use(connectToModel(TagModel));
+
+router.route('/tags/').get(getAllTags).post(addNewTag);
+
+router
+  .route('/tags/:tagId')
   .get(getTagById)
   .patch(updateTag)
-  .delete(deleteTagById)
+  .delete(deleteTagById);
 export default router;

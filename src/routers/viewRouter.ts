@@ -9,8 +9,12 @@ import {
   getAuthorsByPopularity,
   getSortedFilesByViews,
 } from '../controllers/viewController';
+import { connectToModel } from '../controllers/mediaController';
+import { ViewModel } from '../models/viewModel';
 
 const router = Router();
+
+router.use(connectToModel(ViewModel));
 
 router.route('/views/:filetypeId/:fileId').get(getViewsByFileId);
 

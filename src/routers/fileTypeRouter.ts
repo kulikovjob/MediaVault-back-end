@@ -5,18 +5,21 @@ import {
   getFileTypeById,
   addNewFileType,
   updateFileType,
-  deleteFileTypeById
+  deleteFileTypeById,
 } from '../controllers/fileTypeController';
+import { connectToModel } from '../controllers/mediaController';
+import { FileTypeModel } from '../models/fileTypeModel';
 
 const router = Router();
 
-router.route('/filetype/')
-  .get(getAllFileTypes)
-  .post(addNewFileType)
+router.use(connectToModel(FileTypeModel));
 
-router.route('/filetype/:filetypeId')
+router.route('/filetype/').get(getAllFileTypes).post(addNewFileType);
+
+router
+  .route('/filetype/:filetypeId')
   .get(getFileTypeById)
   .patch(updateFileType)
-  .delete(deleteFileTypeById)
+  .delete(deleteFileTypeById);
 
 export default router;

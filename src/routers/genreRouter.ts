@@ -1,21 +1,24 @@
-import { Router } from 'express'
+import { Router } from 'express';
 
 import {
   getAllGenres,
   getGenreById,
   addNewGenre,
   updateGenre,
-  deleteGenreById
+  deleteGenreById,
 } from '../controllers/genreController';
+import { connectToModel } from '../controllers/mediaController';
+import { GenreModel } from '../models/genreModel';
 
 const router = Router();
 
-router.route('/genres/')
-  .get(getAllGenres)
-  .post(addNewGenre)
+router.use(connectToModel(GenreModel));
 
-router.route('/genres/:genreId')
+router.route('/genres/').get(getAllGenres).post(addNewGenre);
+
+router
+  .route('/genres/:genreId')
   .get(getGenreById)
   .patch(updateGenre)
-  .delete(deleteGenreById)
+  .delete(deleteGenreById);
 export default router;
