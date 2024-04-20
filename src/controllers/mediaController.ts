@@ -77,7 +77,7 @@ export const deleteFileById = catchAsync(
 );
 
 export const updateFile = catchAsync(
-  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const { filetypeId, fileId } = req.params;
     const newData = req.body;
     // Проверка наличия данных для обновления
