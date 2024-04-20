@@ -1,7 +1,5 @@
 import { Router } from 'express';
 
-const router = Router();
-
 import {
   getAllMetadata,
   getAllMetadataById,
@@ -11,6 +9,8 @@ import {
 } from '../controllers/metadataController';
 import { connectToModel } from '../controllers/mediaController';
 import { MetadataModel } from '../models/metadataModel';
+
+const router = Router();
 
 router.use(connectToModel(MetadataModel));
 
