@@ -1,22 +1,10 @@
 import dotenv from 'dotenv';
-import { User } from '../types/types';
-import { getDatabaseInstance } from '../utils/databaseUtils';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
 // eslint-disable-next-line import/prefer-default-export
-export class UserModel {
-  db;
-
-  constructor(
-    username: string,
-    name: string,
-    password: string,
-    port: string,
-    host: string,
-  ) {
-    this.db = getDatabaseInstance({ name, password, host, port, username });
-  }
+export class UserModel extends BaseModel {
 
   async getAllUsers() {
     return this.db.manyOrNone(`

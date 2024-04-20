@@ -1,17 +1,16 @@
 import dotenv from 'dotenv';
 import { Tag } from '../types/types';
-import { getDatabaseInstance } from '../utils/databaseUtils';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
-export class TagModel {
-  db = getDatabaseInstance();
-
+// eslint-disable-next-line import/prefer-default-export
+export class TagModel extends BaseModel {
   async getAllTags() {
     return this.db.manyOrNone(
       `
       SELECT * FROM "tag"
-    `)
+    `);
   }
 
   async getTagById(tagId: string) {
@@ -20,7 +19,7 @@ export class TagModel {
       SELECT * FROM "tag"
       WHERE tag_id = $1
     `,
-      tagId
+      tagId,
     );
   }
 
@@ -31,7 +30,7 @@ export class TagModel {
     );
   }
 
-  async updateTag(tagId: string, newData: any) {
+  async updateTag(tagId: string, newData: unknown) {
     return this.db.one(
       `
     UPDATE "tag"
@@ -42,7 +41,7 @@ export class TagModel {
     WHERE tag_id = $${Object.keys(newData).length + 1}
     RETURNING *;
     `,
-      [...Object.values(newData).filter(value => value !== undefined), tagId]
+      [...Object.values(newData).filter(value => value !== undefined), tagId],
     );
   }
 

@@ -1,11 +1,11 @@
 import dotenv from 'dotenv';
-import { Comment, Tag } from '../types/types';
-import { getDatabaseInstance } from '../utils/databaseUtils';
+import { Comment } from '../types/types';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
-export class CommentModel {
-  db = getDatabaseInstance();
+// eslint-disable-next-line import/prefer-default-export
+export class CommentModel extends BaseModel {
 
   async getAllComments() {
     return this.db.manyOrNone(
@@ -14,7 +14,7 @@ export class CommentModel {
       FROM Comment c
       INNER JOIN MultimediaFile mf ON c.file_id = mf.file_id
       INNER JOIN "User" u ON c.user_id = u.user_id
-      `
+      `,
     );
   }
 
@@ -27,7 +27,7 @@ export class CommentModel {
       INNER JOIN "User" u ON c.user_id = u.user_id
       WHERE c.comment_id = $1
       `,
-      [commentId]
+      [commentId],
     );
   }
 
@@ -38,7 +38,7 @@ export class CommentModel {
     );
   }
 
-  async updateComment(commentId: string, newData: any) {
+  async updateComment(commentId: string, newData: unknown) {
     return this.db.one(
       `
     UPDATE "comment"
@@ -49,7 +49,7 @@ export class CommentModel {
     WHERE comment_id = $${Object.keys(newData).length + 1}
     RETURNING *;
     `,
-      [...Object.values(newData).filter(value => value !== undefined), commentId]
+      [...Object.values(newData).filter(value => value !== undefined), commentId],
     );
   }
 

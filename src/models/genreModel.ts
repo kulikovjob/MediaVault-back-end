@@ -1,17 +1,17 @@
 import dotenv from 'dotenv';
 import { Genre } from '../types/types';
-import { getDatabaseInstance } from '../utils/databaseUtils';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
-export class GenreModel {
-  db = getDatabaseInstance();
+// eslint-disable-next-line import/prefer-default-export
+export class GenreModel extends BaseModel {
 
   async getAllGenres() {
     return this.db.manyOrNone(
       `
       SELECT * FROM "Genres"
-    `)
+    `);
   }
 
   async getGenreById(genreId: string) {
@@ -20,7 +20,7 @@ export class GenreModel {
     SELECT * FROM "Genres"
     WHERE genre_id = $1
     `,
-      genreId
+      genreId,
     );
   }
 
@@ -42,7 +42,7 @@ export class GenreModel {
     WHERE genre_id = $${Object.keys(newData).length + 1}
     RETURNING *;
     `,
-      [...Object.values(newData).filter(value => value !== undefined), genreId]
+      [...Object.values(newData).filter(value => value !== undefined), genreId],
     );
   }
 

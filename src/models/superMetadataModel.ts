@@ -1,17 +1,17 @@
 import dotenv from 'dotenv';
-import { FileType, SuperMetadata } from '../types/types';
-import { getDatabaseInstance } from '../utils/databaseUtils';
+import { SuperMetadata } from '../types/types';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
-export class SuperMetadataModel {
-  db = getDatabaseInstance()
+// eslint-disable-next-line import/prefer-default-export
+export class SuperMetadataModel extends BaseModel {
 
   async getAllSuperMetadata() {
     return this.db.manyOrNone(
       `
       SELECT * FROM "supermetadata"
-    `)
+    `);
   }
 
   async getSuperMetadataById(supermetadataId: string) {
@@ -20,7 +20,7 @@ export class SuperMetadataModel {
       SELECT * FROM "supermetadata"
       WHERE metadata_id = $1
     `,
-      supermetadataId
+      supermetadataId,
     );
   }
 
@@ -31,7 +31,7 @@ export class SuperMetadataModel {
     );
   }
 
-  async updateSuperMetadata(superMetadataId: string, newData: any) {
+  async updateSuperMetadata(superMetadataId: string, newData: unknown) {
     return this.db.one(
       `
     UPDATE "supermetadata"

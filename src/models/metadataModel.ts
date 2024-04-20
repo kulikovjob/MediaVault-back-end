@@ -1,11 +1,11 @@
 import dotenv from 'dotenv';
-import { FileMetadata, Metadata, SuperMetadata } from '../types/types';
-import { getDatabaseInstance } from '../utils/databaseUtils';
+import { FileMetadata,  } from '../types/types';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
-export class MetadataModel {
-  db = getDatabaseInstance();
+// eslint-disable-next-line import/prefer-default-export
+export class MetadataModel extends BaseModel {
 
   async getAllMetadata() {
     return this.db.manyOrNone(`
@@ -62,7 +62,7 @@ export class MetadataModel {
   async deleteMetadataById(file_metadata_id: string) {
     return this.db.none(
       'DELETE FROM public."filemetadata" WHERE file_metadata_id = $1',
-      [file_metadata_id]
+      [file_metadata_id],
     );
   }
 }

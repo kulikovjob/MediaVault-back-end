@@ -54,18 +54,3 @@ export const getDatabaseInstance = ({
   }
   return instance;
 };
-
-export const connectToDb = catchAsync(
-  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
-    const { name, password, username } = req.body;
-    if (!name || !password || !username)
-      return next(
-        new AppError('Pleas attach password and username for auth', 401),
-      );
-    const connectDB = await getDatabaseInstance({ name, password, username });
-
-    req.auth = connectDB;
-
-    next();
-  },
-);

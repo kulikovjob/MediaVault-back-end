@@ -1,11 +1,11 @@
 import dotenv from 'dotenv';
-import { Comment, View } from '../types/types';
-import { getDatabaseInstance } from '../utils/databaseUtils';
+import {  View } from '../types/types';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
-export class ViewModel {
-  db = getDatabaseInstance();
+// eslint-disable-next-line import/prefer-default-export
+export class ViewModel extends BaseModel {
 
   async getViewsByFileId(fileId: string, fileTypeId: string) {
     return this.db.any('SELECT * FROM public.get_views_by_file_id($1, $2)', [
@@ -54,7 +54,7 @@ export class ViewModel {
       data.criteria,
       data.value,
       data.start_date,
-      data.end_date
+      data.end_date,
     ]);
   }
 }

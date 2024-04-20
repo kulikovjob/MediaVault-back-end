@@ -1,11 +1,11 @@
 import dotenv from 'dotenv';
 import { FileType } from '../types/types';
-import { getDatabaseInstance } from '../utils/databaseUtils';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
-export class FileTypeModel {
-  db = getDatabaseInstance();
+// eslint-disable-next-line import/prefer-default-export
+export class FileTypeModel extends BaseModel {
 
   async getAllFileTypes() {
     return this.db.manyOrNone(
@@ -31,7 +31,7 @@ export class FileTypeModel {
     );
   }
 
-  async updateFileType(filetypeId: string, newData: any) {
+  async updateFileType(filetypeId: string, newData: unknown) {
     return this.db.one(
       `
     UPDATE "filetype"
