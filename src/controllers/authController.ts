@@ -5,10 +5,8 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
-import { User, IUser, UserRoles } from '../models/userModel';
 import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/appError';
-import { sendEmail } from '../utils/emailUtils';
 // eslint-disable-next-line import/prefer-default-export
 
 interface UserLogin
@@ -31,7 +29,7 @@ const createSendToken = (user: IUser, statusCode: number, res: Response) => {
   const cookieOptions = {
     expires: new Date(
       Date.now() +
-      parseInt(process.env.JWT_COOKIE_EXPIRES_IN, 10) * 24 * 60 * 60 * 100,
+        parseInt(process.env.JWT_COOKIE_EXPIRES_IN, 10) * 24 * 60 * 60 * 100,
     ),
     secure: isProduction,
     httpOnly: true,
@@ -143,128 +141,22 @@ export const protect = catchAsync(
     }
 
     // Grant access to protected route
-    req.user = currentUser;
+    req.auth = currentUser;
     next();
   },
 );
 
-export const restrictTo =
-  (...roles: UserRoles[]) =>
-    (req: Request, res: Response, next: NextFunction) => {
-      const isUserHavePermission = roles.includes(req.user.role);
-      if (!isUserHavePermission) {
-        return next(
-          new AppError('You do not have permission to perform this action', 403),
-        );
-      }
+// export const restrictTo =
+//   (...roles: UserRoles[]) =>
+//     (req: Request, res: Response, next: NextFunction) => {
+//       const isUserHavePermission = roles.includes(req.user.role);
+//       if (!isUserHavePermission) {
+//         return next(
+//           new AppError('You do not have permission to perform this action', 403),
+//         );
+//       }
 
-      return next();
-    };
+//       return next();
+//     };
 
-export const forgotPassword = catchAsync(
-  async (
-    req: Request<object, object, Pick<IUser, 'email'>>,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    const user = await User.findOne({ email: req.body.email });
-    if (!user) {
-      return next(
-        new AppError('There is no user with that email address.', 404),
-      );
-    }
-
-    const resetToken = user.createPasswordResetToken();
-    await user.save({ validateBeforeSave: false });
-
-    const resetURL = `${req.protocol}://${req.get(
-      'host',
-    )}/api/v1/resetPassword/${resetToken}`;
-
-    const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}. \n If you didn't forget your password, please ignore this email!`;
-
-    try {
-      await sendEmail({
-        email: req.body.email,
-        subject: 'Your password reset token (valid for 10 min)',
-        message,
-      });
-
-      res.status(200).json({
-        status: 'success',
-        message: 'Token send to email!',
-      });
-    } catch (error) {
-      user.passwordResetToken = undefined;
-      user.passwordResetExpires = undefined;
-      await user.save({ validateBeforeSave: false });
-
-      return next(
-        new AppError(
-          'There was an error sending the email. Try again later!',
-          500,
-        ),
-      );
-    }
-  },
-);
-export const resetPassword = catchAsync(
-  async (
-    req: Request<
-      { token: string },
-      object,
-      Pick<IUser, 'password' | 'passwordConfirm'>
-    >,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    const hashedToken = crypto
-      .createHash('sha256')
-      .update(req.params.token)
-      .digest('hex');
-
-    const user = await User.findOne({
-      passwordResetToken: hashedToken,
-      passwordResetExpires: { $gt: Date.now() },
-    });
-
-    if (!user) {
-      return next(new AppError('Token is invalid or has expired', 400));
-    }
-
-    user.password = req.body.password;
-    user.passwordConfirm = req.body.passwordConfirm;
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
-    await user.save();
-
-    return createSendToken(user, 201, res);
-  },
-);
-
-export const updatePassword = catchAsync(
-  async (
-    req: Request<{ token: string }, object, UserUpdatePassword>,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    const user = await User.findById(req.user.id).select('+password');
-
-    const isPasswordCorrect = await user.correctPassword(
-      req.body.password,
-      user.password,
-    );
-
-    if (!isPasswordCorrect) {
-      return next(new AppError('Incorrect email or password', 401));
-    }
-
-    user.password = req.body.newPassword;
-    user.passwordConfirm = req.body.passwordConfirm;
-
-    await user.save();
-
-    return createSendToken(user, 201, res);
-  },
-);
 export { UserRoles };

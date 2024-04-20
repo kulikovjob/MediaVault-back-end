@@ -7,15 +7,24 @@ import { getDatabaseInstance } from '../utils/databaseUtils';
 dotenv.config({ path: './.env' });
 
 // eslint-disable-next-line import/prefer-default-export
-
 export class MediaModel {
-  db = getDatabaseInstance();
+  db;
+
+  constructor(
+    username: string,
+    name: string,
+    password: string,
+    port: string,
+    host: string,
+  ) {
+    this.db = getDatabaseInstance({ name, password, host, port, username });
+  }
 
   async getAllMediaFilesInfo() {
     return this.db.manyOrNone(
       `
         SELECT * FROM get_multimedia_files_info();
-      `
+      `,
     );
   }
   async getAllMediaFiles(fileTypeId: string) {
@@ -74,15 +83,11 @@ export class MediaModel {
     await this.db.oneOrNone('SELECT fill_view_table($1)', fileId);
   }
 
-
-
   async addNewFile(data: Partial<File>) {
-    return this.db.one(
-      'SELECT add_new_file($1, $2, $3) AS file_id',
-      [...Object.values(data)],
-    );
+    return this.db.one('SELECT add_new_file($1, $2, $3) AS file_id', [
+      ...Object.values(data),
+    ]);
   }
-
 
   async deleteFileById(filetypeId: string, fileId: string) {
     return this.db.none(

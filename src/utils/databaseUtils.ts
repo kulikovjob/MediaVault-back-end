@@ -21,9 +21,10 @@ interface DBParams {
   name?: string;
 }
 
-interface RequestWithAuth extends Request {
+export interface RequestWithAuth extends Request {
+  auth: DBParams;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  auth: any;
+  model: any;
 }
 
 export const getDatabaseConnectionUrl = ({
