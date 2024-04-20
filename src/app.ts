@@ -19,8 +19,6 @@ if (process.env.NODE_ENV === ApplicationPhaces.Development) {
 
 app.use(express.json());
 
-app.use(connectToDb);
-
 app.use('/api/v1', apiRouter);
 
 app.all('*', (req: Request, res: Response, next: NextFunction) => {
