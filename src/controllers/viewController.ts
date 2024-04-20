@@ -3,17 +3,13 @@ import { View  } from '../types/types';
 import { ViewModel } from '../models/viewModel';
 import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/appError';
+import { RequestWithAuth } from '../utils/databaseUtils';
 
-const View = new ViewModel();
 
-interface RequestParams {
-  fileId: string;
-  filetypeId: string;
-}
 
-export const getViewsByFileId = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const getViewsByFileId = catchAsync(async (req: RequestWithAuth, res: Response, next: NextFunction) => {
   const { filetypeId,  fileId } = req.params;
-  const mediaFile = await View.getViewsByFileId(filetypeId, fileId);
+  const mediaFile = await req.model.getViewsByFileId(filetypeId, fileId);
 
   if (!mediaFile) {
     return res.status(404).json({ status: 'error', message: 'Media file not found' });
@@ -23,7 +19,7 @@ export const getViewsByFileId = catchAsync(async (req: Request, res: Response, n
 });
 
 export const getViewsByPeriod = catchAsync(
-  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const { start_date, end_date } = req.body;
 
     // Проверка наличия данных для запроса
@@ -31,14 +27,14 @@ export const getViewsByPeriod = catchAsync(
       return res.status(400).json({ status: 'error', message: 'Start date and end date are required' });
     }
 
-    const views = await View.getViewsByPeriod(new Date(start_date), new Date(end_date));
+    const views = await req.model.getViewsByPeriod(new Date(start_date), new Date(end_date));
 
     res.status(200).json({ status: 'success', data: views });
   },
 );
 
 export const getPopularFilesByPeriod = catchAsync(
-  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const { start_date, end_date } = req.body;
 
     // Проверка наличия данных для запроса
@@ -46,14 +42,14 @@ export const getPopularFilesByPeriod = catchAsync(
       return res.status(400).json({ status: 'error', message: 'Start date and end date are required' });
     }
 
-    const views = await View.getPopularFilesByPeriod(new Date(start_date), new Date(end_date));
+    const views = await req.model.getPopularFilesByPeriod(new Date(start_date), new Date(end_date));
 
     res.status(200).json({ status: 'success', data: views });
   },
 );
 
 export const getPopularGenresByPeriod = catchAsync(
-  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const { start_date, end_date } = req.body;
 
     // Проверка наличия данных для запроса
@@ -61,14 +57,14 @@ export const getPopularGenresByPeriod = catchAsync(
       return res.status(400).json({ status: 'error', message: 'Start date and end date are required' });
     }
 
-    const views = await View.getPopularGenresByPeriod(new Date(start_date), new Date(end_date));
+    const views = await req.model.getPopularGenresByPeriod(new Date(start_date), new Date(end_date));
 
     res.status(200).json({ status: 'success', data: views });
   },
 );
 
 export const getPopularTagsByPeriod = catchAsync(
-  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const { start_date, end_date } = req.body;
 
     // Проверка наличия данных для запроса
@@ -76,14 +72,14 @@ export const getPopularTagsByPeriod = catchAsync(
       return res.status(400).json({ status: 'error', message: 'Start date and end date are required' });
     }
 
-    const views = await View.getPopularTagsByPeriod(new Date(start_date), new Date(end_date));
+    const views = await req.model.getPopularTagsByPeriod(new Date(start_date), new Date(end_date));
 
     res.status(200).json({ status: 'success', data: views });
   },
 );
 
 export const getAuthorsByPopularity = catchAsync(
-  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const { start_date, end_date } = req.body;
 
     // Проверка наличия данных для запроса
@@ -91,16 +87,16 @@ export const getAuthorsByPopularity = catchAsync(
       return res.status(400).json({ status: 'error', message: 'Start date and end date are required' });
     }
 
-    const views = await View.getAuthorsByPopularity(new Date(start_date), new Date(end_date));
+    const views = await req.model.getAuthorsByPopularity(new Date(start_date), new Date(end_date));
 
     res.status(200).json({ status: 'success', data: views });
   },
 );
 
 export const getSortedFilesByViews = catchAsync(
-  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
 
-    const views = await View.getSortedFilesByViews({...req.body} );
+    const views = await req.model.getSortedFilesByViews({...req.body} );
 
     res.status(200).json({ status: 'success', data: views });
   },

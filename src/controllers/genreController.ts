@@ -1,19 +1,18 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Response } from 'express';
 import { Genre } from '../types/types';
 import { GenreModel } from '../models/genreModel';
 import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/appError';
+import { RequestWithAuth } from '../utils/databaseUtils';
 
-const Genre = new GenreModel();
 
-interface RequestParams {
-  genreId: string
-}
+
+
 
 export const getAllGenres = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     //const { genreId } = req.params; // Получаем тип файла из параметров маршрута
-    const genres = await Genre.getAllGenres(); // Используем тип файла для получения файлов определенного типа
+    const genres = await req.model.getAllGenres(); // Используем тип файла для получения файлов определенного типа
 
     res
       .status(200)
@@ -22,9 +21,10 @@ export const getAllGenres = catchAsync(
 );
 
 export const getGenreById = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const { genreId } = req.params; // Получаем тип файла из параметров маршрута
-    const genre = await Genre.getGenreById(genreId); // Используем тип файла для получения файлов определенного типа
+    const genre = await req.model.getGenreById(genreId); // Используем тип файла для получения файлов определенного типа
+
 
     res
       .status(200)
@@ -34,17 +34,17 @@ export const getGenreById = catchAsync(
 
 export const addNewGenre = catchAsync(
   async (
-    req: Request,
+    req: RequestWithAuth,
     res: Response,
     next: NextFunction) => {
-    const newGenre = await Genre.addNewGenre(req.body);
+    const newGenre = await req.model.addNewGenre(req.body);
     res.status(201).json({ status: 'success', data: { newGenre } });
   },
 );
 
 
 export const updateGenre = catchAsync(
-  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const {  genreId } = req.params;
     const newData = req.body;
 
@@ -52,16 +52,16 @@ export const updateGenre = catchAsync(
       return res.status(400).json({ status: 'error', message: 'No data provided for update' });
     }
 
-    await Genre.updateGenre(genreId, newData);
+    await req.model.updateGenre(genreId, newData);
 
     res.status(200).json({ status: 'success', message: 'Genre updated successfully' });
   },
 );
 
 export const deleteGenreById = catchAsync(
-  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const { genreId } = req.params;
-    await Genre.deleteGenreById(genreId);
+    await req.model.deleteGenreById(genreId);
 
     res
       .status(200)

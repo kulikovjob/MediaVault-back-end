@@ -3,16 +3,12 @@ import { SuperMetadata } from '../types/types';
 import { SuperMetadataModel } from '../models/superMetadataModel';
 import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/appError';
+import { RequestWithAuth } from '../utils/databaseUtils';
 
-const SuperMetadata = new SuperMetadataModel();
-
-interface RequestParams {
-  superMetadataId: string
-}
 
 export const getAllSuperMetadata = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const superMetadata = await SuperMetadata.getAllSuperMetadata();
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
+    const superMetadata = await req.model.getAllSuperMetadata();
 
     res
       .status(200)
@@ -21,9 +17,9 @@ export const getAllSuperMetadata = catchAsync(
 );
 
 export const getSuperMetadataById = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const { superMetadataId } = req.params; // Получаем тип файла из параметров маршрута
-    const superMetadata = await SuperMetadata.getSuperMetadataById(superMetadataId); // Используем тип файла для получения файлов определенного типа
+    const superMetadata = await req.model.getSuperMetadataById(superMetadataId); // Используем тип файла для получения файлов определенного типа
 
     res
       .status(200)
@@ -33,17 +29,17 @@ export const getSuperMetadataById = catchAsync(
 
 export const addNewSuperMetadata = catchAsync(
   async (
-    req: Request,
+    req: RequestWithAuth,
     res: Response,
     next: NextFunction,
   ) => {
-    const newSuperMetadata = await SuperMetadata.addNewSuperMetadata({ ...req.body });
+    const newSuperMetadata = await req.model.addNewSuperMetadata({ ...req.body });
     res.status(201).json({ status: 'success', data: { newSuperMetadata } });
   },
 );
 
 export const updateSuperMetadata = catchAsync(
-  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const { superMetadataId } = req.params;
     const newData = req.body;
 
@@ -51,16 +47,16 @@ export const updateSuperMetadata = catchAsync(
       return res.status(400).json({ status: 'error', message: 'No data provided for update' });
     }
 
-    await SuperMetadata.updateSuperMetadata(superMetadataId, newData);
+    await req.model.updateSuperMetadata(superMetadataId, newData);
 
     res.status(200).json({ status: 'success', message: 'SuperMetadata updated successfully' });
   },
 );
 
 export const deleteSuperMetadataById = catchAsync(
-  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const { superMetadataId } = req.params;
-    await SuperMetadata.deleteSuperMetadataById(superMetadataId);
+    await req.model.deleteSuperMetadataById(superMetadataId);
 
     res
       .status(200)

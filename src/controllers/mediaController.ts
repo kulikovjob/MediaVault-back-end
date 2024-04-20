@@ -16,7 +16,7 @@ export const connectToModel = (Model:any) => (
   res: Response,
   next: NextFunction,
 ) => {
-  const { password, host, name, port, username } = req.auth;
+  const { password, host, name, port, username } = req.body;
   req.model = new Model(password, host, name, port, username);
   next();
 };

@@ -4,16 +4,13 @@ import { User  } from '../types/types';
 import { UserModel } from '../models/userModel';
 import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/appError';
+import { RequestWithAuth } from '../utils/databaseUtils';
 
-const User = new UserModel();
 
-interface RequestParams {
-  userId: string
-}
 
 export const getAllUsers = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const users = await User.getAllUsers(); // Используем тип файла для получения файлов определенного типа
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
+    const users = await req.model.getAllUsers(); // Используем тип файла для получения файлов определенного типа
 
     res
       .status(200)
@@ -22,8 +19,8 @@ export const getAllUsers = catchAsync(
 );
 
 export const getUserForCurrentUser = catchAsync(
-  async (req: Request, res: Response) => {
-    const user = await User.getUserForCurrentUser();
+  async (req: RequestWithAuth, res: Response) => {
+    const user = await req.model.getUserForCurrentUser();
 
     res
       .status(200)
@@ -32,9 +29,9 @@ export const getUserForCurrentUser = catchAsync(
 );
 
 export const getUserById = catchAsync(
-  async (req: Request, res: Response) => {
+  async (req: RequestWithAuth, res: Response) => {
     const { userId } = req.params;
-    const user = await User.getUserById(userId);
+    const user = await req.model.getUserById(userId);
 
     res
       .status(200)
@@ -43,9 +40,9 @@ export const getUserById = catchAsync(
 );
 
 export const deleteUserById = catchAsync(
-  async (req: Request<RequestParams>, res: Response) => {
+  async (req: RequestWithAuth, res: Response) => {
     const { userId } = req.params;
-    await User.deleteUserById(userId);
+    await req.model.deleteUserById(userId);
 
     res
       .status(200)

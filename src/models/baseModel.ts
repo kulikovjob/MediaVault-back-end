@@ -16,7 +16,7 @@ export class BaseModel {
     port: string,
     host: string,
   ) {
-    this.db = getDatabaseInstance({ name, password, host, port, username });
+    this.db = getDatabaseInstance({ name, password, port, host, username });
   }
 
   

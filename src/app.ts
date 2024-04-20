@@ -5,7 +5,6 @@ import express, {
   type Express,
 } from 'express';
 import morgan from 'morgan';
-import { connectToDb } from './utils/databaseUtils';
 import { ApplicationPhaces } from './types/types';
 import apiRouter from './routers/apiRouter';
 import { AppError } from './utils/appError';

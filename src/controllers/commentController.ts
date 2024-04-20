@@ -1,17 +1,13 @@
 import { Request, Response } from 'express';
 import { CommentModel } from '../models/commentModel';
 import { catchAsync } from '../utils/catchAsync';
+import { RequestWithAuth } from '../utils/databaseUtils';
 //import { AppError } from '../utils/appError';
 
-const Comment = new CommentModel();
-
-interface RequestParams {
-  commentId: string
-}
 
 export const getAllComments = catchAsync(
-  async (req: Request, res: Response) => {
-    const comments = await Comment.getAllComments();
+  async (req: RequestWithAuth, res: Response) => {
+    const comments = await req.model.getAllComments();
 
     res
       .status(200)
@@ -20,9 +16,9 @@ export const getAllComments = catchAsync(
 );
 
 export const getCommentById = catchAsync(
-  async (req: Request, res: Response) => {
+  async (req: RequestWithAuth, res: Response) => {
     const { commentId } = req.params; // Получаем тип файла из параметров маршрута
-    const comment = await Comment.getCommentById(commentId); // Используем тип файла для получения файлов определенного типа
+    const comment = await req.model.getCommentById(commentId); // Используем тип файла для получения файлов определенного типа
 
     res
       .status(200)
@@ -32,16 +28,16 @@ export const getCommentById = catchAsync(
 
 export const addNewComment = catchAsync(
   async (
-    req: Request,
+    req: RequestWithAuth,
     res: Response
   ) => {
-    const newComment = await Comment.addNewComment({ ...req.body });
+    const newComment = await req.model.addNewComment({ ...req.body });
     res.status(201).json({ status: 'success', data: { newComment } });
   },
 );
 
 export const updateComment = catchAsync(
-  async (req: Request<RequestParams>, res: Response) => {
+  async (req: RequestWithAuth, res: Response) => {
     const { commentId } = req.params;
     const newData = req.body;
 
@@ -49,16 +45,16 @@ export const updateComment = catchAsync(
       return res.status(400).json({ status: 'error', message: 'No data provided for update' });
     }
 
-    await Comment.updateComment(commentId, newData);
+    await req.model.updateComment(commentId, newData);
 
     res.status(200).json({ status: 'success', message: 'Comment updated successfully' });
   },
 );
 
 export const deleteCommentById = catchAsync(
-  async (req: Request<RequestParams>, res: Response) => {
+  async (req: RequestWithAuth, res: Response) => {
     const { commentId } = req.params;
-    await Comment.deleteCommentById(commentId);
+    await req.model.deleteCommentById(commentId);
 
     res
       .status(200)

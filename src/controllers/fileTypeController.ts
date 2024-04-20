@@ -3,16 +3,12 @@ import { FileType } from '../types/types';
 import { FileTypeModel } from '../models/fileTypeModel';
 import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/appError';
+import { RequestWithAuth } from '../utils/databaseUtils';
 
-const FileType = new FileTypeModel();
-
-interface RequestParams {
-  filetypeId: string
-}
 
 export const getAllFileTypes = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const fileTypes = await FileType.getAllFileTypes();
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
+    const fileTypes = await req.model.getAllFileTypes();
 
     res
       .status(200)
@@ -21,9 +17,9 @@ export const getAllFileTypes = catchAsync(
 );
 
 export const getFileTypeById = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const { filetypeId } = req.params; // Получаем тип файла из параметров маршрута
-    const filetype = await FileType.getFileTypeById(filetypeId); // Используем тип файла для получения файлов определенного типа
+    const filetype = await req.model.getFileTypeById(filetypeId); // Используем тип файла для получения файлов определенного типа
 
     res
       .status(200)
@@ -33,17 +29,17 @@ export const getFileTypeById = catchAsync(
 
 export const addNewFileType = catchAsync(
   async (
-    req: Request,
+    req: RequestWithAuth,
     res: Response,
     next: NextFunction,
   ) => {
-    const newFileType = await FileType.addNewFileType({ ...req.body });
+    const newFileType = await req.model.addNewFileType({ ...req.body });
     res.status(201).json({ status: 'success', data: { newFileType } });
   },
 );
 
 export const updateFileType = catchAsync(
-  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const { filetypeId } = req.params;
     const newData = req.body;
 
@@ -51,16 +47,16 @@ export const updateFileType = catchAsync(
       return res.status(400).json({ status: 'error', message: 'No data provided for update' });
     }
 
-    await FileType.updateFileType(filetypeId, newData);
+    await req.model.updateFileType(filetypeId, newData);
 
     res.status(200).json({ status: 'success', message: 'FileType updated successfully' });
   },
 );
 
 export const deleteFileTypeById = catchAsync(
-  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+  async (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const { filetypeId } = req.params;
-    await FileType.deleteFileTypeById(filetypeId);
+    await req.model.deleteFileTypeById(filetypeId);
 
     res
       .status(200)

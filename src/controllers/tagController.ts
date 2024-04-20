@@ -1,17 +1,13 @@
 import { Request, Response } from 'express';
 import { TagModel } from '../models/tagModel';
 import { catchAsync } from '../utils/catchAsync';
+import { RequestWithAuth } from '../utils/databaseUtils';
 //import { AppError } from '../utils/appError';
 
-const Tag = new TagModel();
-
-interface RequestParams {
-  tagId: string
-}
 
 export const getAllTags = catchAsync(
-  async (req: Request, res: Response) => {
-    const tags = await Tag.getAllTags();
+  async (req: RequestWithAuth, res: Response) => {
+    const tags = await req.model.getAllTags();
 
     res
       .status(200)
@@ -20,9 +16,9 @@ export const getAllTags = catchAsync(
 );
 
 export const getTagById = catchAsync(
-  async (req: Request, res: Response) => {
+  async (req: RequestWithAuth, res: Response) => {
     const { tagId } = req.params; // Получаем тип файла из параметров маршрута
-    const tag = await Tag.getTagById(tagId); // Используем тип файла для получения файлов определенного типа
+    const tag = await req.model.getTagById(tagId); // Используем тип файла для получения файлов определенного типа
 
     res
       .status(200)
@@ -32,16 +28,16 @@ export const getTagById = catchAsync(
 
 export const addNewTag = catchAsync(
   async (
-    req: Request,
+    req: RequestWithAuth,
     res: Response
   ) => {
-    const newTag = await Tag.addNewTag({ ...req.body });
+    const newTag = await req.model.addNewTag({ ...req.body });
     res.status(201).json({ status: 'success', data: { newTag } });
   },
 );
 
 export const updateTag = catchAsync(
-  async (req: Request<RequestParams>, res: Response) => {
+  async (req: RequestWithAuth, res: Response) => {
     const { tagId } = req.params;
     const newData = req.body;
 
@@ -49,16 +45,16 @@ export const updateTag = catchAsync(
       return res.status(400).json({ status: 'error', message: 'No data provided for update' });
     }
 
-    await Tag.updateTag(tagId, newData);
+    await req.model.updateTag(tagId, newData);
 
     res.status(200).json({ status: 'success', message: 'Tag updated successfully' });
   },
 );
 
 export const deleteTagById = catchAsync(
-  async (req: Request<RequestParams>, res: Response) => {
+  async (req: RequestWithAuth, res: Response) => {
     const { tagId } = req.params;
-    await Tag.deleteTagById(tagId);
+    await req.model.deleteTagById(tagId);
 
     res
       .status(200)
