@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextFunction, Request, Response } from 'express';
+import jwtParser, { JwtPayload } from 'jsonwebtoken';
 import { catchAsync } from '../utils/catchAsync';
 import { RequestWithAuth } from '../utils/databaseUtils';
 import { AppError } from '../utils/appError';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 
 export const checkCookie = (
   req: Request,
@@ -20,7 +19,10 @@ export const connectToModel =
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (Model: any) => (req: RequestWithAuth, res: Response, next: NextFunction) => {
     const { jwt } = req.cookies;
-    const { password, host, name, port, username } = jwt;
+    const parsedJwt = jwtParser.decode(jwt, { complete: true });
+
+    const { password, host, name, port, username } =
+      parsedJwt.payload as JwtPayload;
     req.model = new Model(password, host, name, port, username);
     next();
   };
