@@ -17,14 +17,40 @@ interface UserUpdatePassword
   newPassword: string;
 }
 
-const isProduction = process.env.NODE_ENV === 'production';
-const signToken = (id: string): string =>
-  jwt.sign({ id }, process.env.JWT_SECRET_KEY, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
+export interface IUser {
+  username: string;
+  password: string;
+}
 
-const createSendToken = (user: IUser, statusCode: number, res: Response) => {
-  const token = signToken(user._id);
+const isProduction = process.env.NODE_ENV === 'production';
+const signToken = ({
+  username,
+  port,
+  host,
+  name,
+  password,
+}: {
+  username: string;
+  password: string;
+  host: string;
+  name: string;
+  port: string;
+}): string =>
+  jwt.sign(
+    { username, port, host, name, password },
+    process.env.JWT_SECRET_KEY,
+    {
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    },
+  );
+
+const createSendToken = (user: IUser, res: Response) => {
+  const token = signToken({
+    ...user,
+    port: process.env.DATABASE_PORT,
+    host: process.env.DATABASE_PASSWORD,
+    name: process.env.DATABASE_NAME,
+  });
 
   const cookieOptions = {
     expires: new Date(
@@ -48,34 +74,27 @@ const createSendToken = (user: IUser, statusCode: number, res: Response) => {
   });
 };
 
-export const signup = catchAsync(
-  async (
-    req: Request<object, object, IUser>,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    const newUser = await User.create({
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password,
-      passwordConfirm: req.body.passwordConfirm,
+// TODO: CREATE LOGIC FOR SIGNUP
+// export const signup = catchAsync(
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     // const newUser = await User.create({
+//     //   name: req.body.name,
+//     //   email: req.body.email,
+//     //   password: req.body.password,
+//     //   passwordConfirm: req.body.passwordConfirm,
 
-      role: req.body.role,
-    });
+//     //   role: req.body.role,
+//     // });
 
-    return createSendToken(newUser, 201, res);
-  },
-);
+//     return createSendToken(newUser, 201, res);
+//   },
+// );
 
 export const login = catchAsync(
-  async (
-    req: Request<object, object, UserLogin>,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    const { email, password } = req.body;
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { username, password } = req.body;
 
-    if (!email || !password) {
+    if (!username || !password) {
       return next(
         new AppError(
           'Please provide both email and password in the request body.',
@@ -83,22 +102,8 @@ export const login = catchAsync(
         ),
       );
     }
-    const user = await User.findOne({ email }).select('+password');
 
-    if (!user) {
-      return next(new AppError('Incorrect email or password', 401));
-    }
-
-    const isPasswordCorrect = await user.correctPassword(
-      password,
-      user.password,
-    );
-
-    if (!isPasswordCorrect) {
-      return next(new AppError('Incorrect email or password', 401));
-    }
-
-    return createSendToken(user, 200, res);
+    return createSendToken(req.body, res);
   },
 );
 
@@ -158,5 +163,3 @@ export const protect = catchAsync(
 
 //       return next();
 //     };
-
-export { UserRoles };

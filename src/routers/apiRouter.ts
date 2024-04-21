@@ -10,8 +10,11 @@ import {
   userRouter,
   viewRouter,
 } from '.';
+import { checkCookie } from '../controllers/mediaController';
 
 const router = Router();
+
+router.use(checkCookie);
 
 router.use('/media', mediaRouter);
 router.use('/genre', genreRouter);

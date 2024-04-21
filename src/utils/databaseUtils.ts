@@ -5,9 +5,7 @@
 import pgPromise, { IDatabase } from 'pg-promise';
 import { IClient } from 'pg-promise/typescript/pg-subset';
 import dotenv from 'dotenv';
-import { NextFunction, Request, Response } from 'express';
-import { catchAsync } from './catchAsync';
-import { AppError } from './appError';
+import { Request } from 'express';
 
 dotenv.config({ path: './.env' });
 

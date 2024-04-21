@@ -1,25 +1,29 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextFunction, Request, Response } from 'express';
-import { MediaModel } from '../models/mediaModel';
 import { catchAsync } from '../utils/catchAsync';
 import { RequestWithAuth } from '../utils/databaseUtils';
-import { BaseModel } from '../models/baseModel';
-
-interface RequestParams {
-  fileId: string;
-  filetypeId: string;
-}
+import { AppError } from '../utils/appError';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const connectToModel = (Model:any) => (
-  req: RequestWithAuth,
+
+export const checkCookie = (
+  req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  const { password, host, name, port, username } = req.body;
-  req.model = new Model(password, host, name, port, username);
-  next();
+  if (!req.cookies.jwt) {
+    next(new AppError('You need to log in first!', 401));
+  }
 };
+
+export const connectToModel =
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (Model: any) => (req: RequestWithAuth, res: Response, next: NextFunction) => {
+    const { jwt } = req.cookies;
+    const { password, host, name, port, username } = jwt;
+    req.model = new Model(password, host, name, port, username);
+    next();
+  };
 
 export const getAllMediaFilesInfo = catchAsync(
   async (req: RequestWithAuth, res: Response, next: NextFunction) => {
