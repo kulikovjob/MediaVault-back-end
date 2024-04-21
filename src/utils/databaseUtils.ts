@@ -42,10 +42,10 @@ export const getDatabaseInstance = ({
 }: DBParams): IDatabase<object, IClient> => {
   if (!instance) {
     const url = getDatabaseConnectionUrl({
-      host,
       name,
       password,
       port,
+      host,
       username,
     });
     instance = pgPromise()(url);

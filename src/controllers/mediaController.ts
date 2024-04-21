@@ -1,31 +1,25 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextFunction, Request, Response } from 'express';
-import jwtParser, { JwtPayload } from 'jsonwebtoken';
+import { MediaModel } from '../models/mediaModel';
 import { catchAsync } from '../utils/catchAsync';
 import { RequestWithAuth } from '../utils/databaseUtils';
-import { AppError } from '../utils/appError';
+import { BaseModel } from '../models/baseModel';
 
-export const checkCookie = (
-  req: Request,
+interface RequestParams {
+  fileId: string;
+  filetypeId: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const connectToModel = (Model:any) => (
+  req: RequestWithAuth,
   res: Response,
   next: NextFunction,
 ) => {
-  if (!req.cookies.jwt) {
-    next(new AppError('You need to log in first!', 401));
-  }
+  const { password, host, name, port, username } = req.body;
+  req.model = new Model(password, host, name, port, username);
+  next();
 };
-
-export const connectToModel =
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (Model: any) => (req: RequestWithAuth, res: Response, next: NextFunction) => {
-    const { jwt } = req.cookies;
-    const parsedJwt = jwtParser.decode(jwt, { complete: true });
-
-    const { password, host, name, port, username } =
-      parsedJwt.payload as JwtPayload;
-    req.model = new Model(password, host, name, port, username);
-    next();
-  };
 
 export const getAllMediaFilesInfo = catchAsync(
   async (req: RequestWithAuth, res: Response, next: NextFunction) => {

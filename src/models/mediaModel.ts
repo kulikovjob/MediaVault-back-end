@@ -27,6 +27,7 @@ export class MediaModel {
       `,
     );
   }
+
   async getAllMediaFiles(fileTypeId: string) {
     return this.db.manyOrNone(
       `
