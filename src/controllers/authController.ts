@@ -5,7 +5,7 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
-import { User, IUser, UserRoles } from '../models/userModel';
+import { User,} from '../models/userModel';
 import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/appError';
 import { sendEmail } from '../utils/emailUtils';
