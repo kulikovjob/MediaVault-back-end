@@ -1,0 +1,330 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8">-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--  <title>View All Files</title>-->
+<!--  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">-->
+<!--</head>-->
+<!--<body class="container">-->
+<!--<div class="d-flex justify-content-between align-items-center my-4">-->
+<!--  <h1>View All Files</h1>-->
+<!--  <a href='/Authors.html' class="btn btn-primary">Back to Home</a>-->
+<!--</div>-->
+<!--<div id="file-list" class="row"></div>-->
+
+<!--<a href='/Authors.html' class="btn btn-primary mt-4">Back to Home</a>-->
+
+<!--<script>-->
+<!--  const fileTypes = {-->
+<!--    "Image": 1,-->
+<!--    "Video": 2,-->
+<!--    "Audio": 3,-->
+<!--    "Document": 4-->
+<!--  };-->
+
+<!--  fetch('/api/v1/media/files/')-->
+<!--    .then(response => {-->
+<!--      if (!response.ok) {-->
+<!--        throw new Error('Failed to fetch files');-->
+<!--      }-->
+<!--      return response.json();-->
+<!--    })-->
+<!--    .then(data => {-->
+<!--      const fileList = document.getElementById('file-list');-->
+<!--      if (data.status === 'success') {-->
+<!--        data.data.media.forEach(file => {-->
+<!--          const col = document.createElement('div');-->
+<!--          col.className = 'col-md-4';-->
+<!--          col.innerHTML = `-->
+<!--              <div class="card mb-4 shadow-sm">-->
+<!--                <div class="card-body">-->
+<!--                  <h5 class="card-title">${file.file_name}</h5>-->
+<!--                  <p class="card-text">ID: ${file.file_id}</p>-->
+<!--                  <p class="card-text">Upload Date: ${new Date(file.upload_date).toLocaleDateString()}</p>-->
+<!--                  <p class="card-text">Author: ${file.author_first_name} ${file.author_second_name}</p>-->
+<!--                  <p class="card-text">File Type: ${file.file_type}</p>-->
+<!--                  <p class="card-text">Rating: ${file.file_rating}</p>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            `;-->
+<!--          fileList.appendChild(col);-->
+<!--        });-->
+<!--      } else {-->
+<!--        throw new Error(data.message);-->
+<!--      }-->
+<!--    })-->
+<!--    .catch(error => {-->
+<!--      console.error('Error:', error);-->
+<!--      redirectToErrorPage(error.message);-->
+<!--    });-->
+
+<!--  function redirectToErrorPage(errorMessage) {-->
+<!--    const errorLink = document.createElement('a');-->
+<!--    errorLink.href = `/error.html?message=${errorMessage}`;-->
+<!--    errorLink.className = 'btn btn-danger mt-4';-->
+<!--    errorLink.textContent = 'View Error Details';-->
+<!--    document.body.appendChild(errorLink);-->
+<!--    setTimeout(() => {-->
+<!--      window.location.href = errorLink.href;-->
+<!--    }, 3000); // Redirect after 3 seconds-->
+<!--  }-->
+<!--</script>-->
+
+<!--</body>-->
+<!--</html>-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Перегляд всіх файлів</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+</head>
+<body class="container">
+<div class="d-flex justify-content-between align-items-center my-4">
+  <h1>Перегляд всіх файлів</h1>
+  <a href='/Authors.html' class="btn btn-primary">На головну</a>
+</div>
+
+<!-- Контейнер для сповіщень -->
+<div id="alertContainer"></div>
+
+<div id="file-list" class="row"></div>
+
+<!-- Модальне вікно для коментарів -->
+<div class="modal fade" id="commentsModal" tabindex="-1" role="dialog" aria-labelledby="commentsModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="commentsModalLabel">Коментарі файлу</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="commentsContainer">
+        <!-- Коментарі будуть завантажуватися сюди -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрити</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальне вікно для редагування коментарів -->
+<div class="modal fade" id="editCommentModal" tabindex="-1" role="dialog" aria-labelledby="editCommentModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editCommentModalLabel">Редагувати коментар</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="editCommentForm">
+          <div class="form-group">
+            <label for="commentText">Текст коментаря</label>
+            <textarea class="form-control" id="commentText" rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Зберегти зміни</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<a href='/Authors.html' class="btn btn-primary mt-4">На головну</a>
+
+<script>
+  const fileTypes = {
+    "Image": 1,
+    "Video": 2,
+    "Audio": 3,
+    "Document": 4
+  };
+
+  fetch('/api/v1/media/files/')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch files');
+      }
+      return response.json();
+    })
+    .then(data => {
+      const fileList = document.getElementById('file-list');
+      if (data.status === 'success') {
+        data.data.media.forEach(file => {
+          const col = document.createElement('div');
+          col.className = 'col-md-4';
+          col.innerHTML = `
+              <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title">${file.file_name}</h5>
+                  <p class="card-text">ID файлу: ${file.file_id}</p>
+                  <p class="card-text">Дата завантаження: ${new Date(file.upload_date).toLocaleDateString()}</p>
+                  <p class="card-text">Автор: ${file.author_first_name} ${file.author_second_name}</p>
+                  <p class="card-text">Тип файлу: ${file.file_type}</p>
+                  <p class="card-text">Рейтинг: ${file.file_rating}</p>
+                  <button class="btn btn-info" onclick="showComments(${file.file_id})">Переглянути коментарі</button>
+                </div>
+              </div>
+            `;
+          fileList.appendChild(col);
+        });
+      } else {
+        throw new Error(data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showAlert('Failed to fetch files: ' + error.message);
+    });
+
+  function showAlert(message, isSuccess = true, containerId = 'alertContainer') {
+    const alertContainer = document.getElementById(containerId);
+    const alertType = isSuccess ? 'alert-success' : 'alert-danger';
+    alertContainer.innerHTML = `
+    <div class="alert ${alertType} alert-dismissible" role="alert">
+      ${message}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  `;
+  }
+
+
+
+  function showComments(fileId) {
+    $('#commentsModal').modal('show');
+    fetchComments(fileId);
+  }
+
+  function fetchComments(fileId) {
+    fetch(`/api/v8/comments/${fileId}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        const commentsContainer = document.getElementById('commentsContainer');
+        commentsContainer.innerHTML = '';
+        if (data.status === 'success' && data.data.comment && data.data.comment.length > 0) {
+          data.data.comment.forEach(comment => {
+            commentsContainer.innerHTML += `
+              <div class="comment" id="comment-${comment.comment_id}">
+                <p><strong>${comment.first_name} ${comment.second_name}</strong>: ${comment.comment_text}</p>
+                <button class="btn btn-secondary btn-sm" onclick="updateComment(${comment.comment_id})">Оновити</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteComment(${comment.comment_id})">Видалити</button>
+              </div>
+            `;
+          });
+        } else {
+          commentsContainer.innerHTML = '<p>Немає коментарів</p>';
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        $('#commentsModal').modal('hide');
+        showAlert('Failed to fetch comments: ' + error.message);
+      });
+  }
+
+  function deleteComment(commentId) {
+    fetch(`/api/v8/comments/${commentId}`, {
+      method: 'DELETE'
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Не вдалося видалити коментар');
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.status === 'success') {
+          document.getElementById(`comment-${commentId}`).remove();
+          showAlert('Коментар успішно видалено', true); // Успішне повідомлення
+          $('#commentsModal').modal('hide');
+        } else {
+          throw new Error('Не вдалося видалити коментар');
+        }
+      })
+      .catch(error => {
+        $('#commentsModal').modal('hide');
+        showAlert(error.message, false); // Помилкове повідомлення
+      });
+  }
+
+  function updateComment(commentId) {
+    // Встановлюємо значення існуючого тексту коментаря у модальне вікно для редагування
+    const existingCommentElement = document.getElementById(`comment-text-${commentId}`);
+    const existingText = existingCommentElement ? existingCommentElement.innerText : '';
+    document.getElementById('commentText').value = existingText;
+
+    // Показуємо модальне вікно для редагування
+    $('#editCommentModal').modal('show');
+
+    // Очищуємо попередній обробник подій, якщо він був
+    const form = document.getElementById('editCommentForm');
+    form.onsubmit = null;
+
+    // Створюємо новий обробник подій
+    form.onsubmit = function(event) {
+      event.preventDefault();  // Запобігаємо стандартному відправленню форми
+      const newText = document.getElementById('commentText').value;
+      if (newText.trim() !== "") {
+        fetch(`/api/v8/comments/${commentId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ comment_text: newText })
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Не вдалося оновити коментар');
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data.status === 'success') {
+              $('#editCommentModal').modal('hide');
+              $('#commentsModal').modal('hide');
+              showAlert('Коментар успішно оновлено', true);
+              //location.reload();  // Оновлюємо сторінку, щоб побачити зміни
+            } else {
+              throw new Error('Не вдалося оновити коментар');
+            }
+          })
+          .catch(error => {
+            $('#editCommentModal').modal('hide');
+            $('#commentsModal').modal('hide');
+            showAlert(error.message, false);
+          });
+      } else {
+        showAlert('Текст коментаря не може бути пустим', false, 'alertContainer');
+        $('#editCommentModal').modal('hide');
+        $('#commentsModal').modal('hide');
+      }
+    };
+  }
+
+
+
+
+
+
+
+
+</script>
+
+</body>
+</html>

@@ -6,10 +6,12 @@ import {
   getAllUsers,
   getUserForCurrentUser,
   getUserById,
-  deleteUserById
+  deleteUserById,
+  UserActivity
 } from '../controllers/userController';
 
 router.route('/user/').get(getUserForCurrentUser)
+router.route('/user/activity').get(UserActivity)
 router.route('/users/')
   .get(getAllUsers)
 

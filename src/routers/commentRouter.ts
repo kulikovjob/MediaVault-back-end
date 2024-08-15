@@ -10,8 +10,7 @@ import {
   deleteCommentById
 } from '../controllers/commentController';
 
-router.route('/comments/')
-  .get(getAllComments)
+router.route('/comments/').get(getAllComments)
   .post(addNewComment)
 
 router.route('/comments/:commentId')

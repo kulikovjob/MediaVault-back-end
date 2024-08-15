@@ -1,10 +1,11 @@
 import dotenv from 'dotenv';
 import { FileMetadata, Metadata, SuperMetadata } from '../types/types';
 import { getDatabaseInstance } from '../utils/databaseUtils';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
-export class MetadataModel {
+export class MetadataModel extends BaseModel{
   db = getDatabaseInstance();
 
   async getAllMetadata() {

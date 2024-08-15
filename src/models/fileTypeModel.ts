@@ -1,11 +1,12 @@
 import dotenv from 'dotenv';
 import { FileType } from '../types/types';
 import { getDatabaseInstance } from '../utils/databaseUtils';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
-export class FileTypeModel {
-  db = getDatabaseInstance();
+export class FileTypeModel extends BaseModel{
+  //db = getDatabaseInstance();
 
   async getAllFileTypes() {
     return this.db.manyOrNone(

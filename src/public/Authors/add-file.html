@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Додавання нового файлу та метаданих</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container">
+<div class="d-flex justify-content-between align-items-center my-4">
+  <h1>Додавання нового файлу та метаданих</h1>
+  <a href='/Authors.html' class="btn btn-primary">На головну</a>
+</div>
+<form id="add-file-form">
+  <div class="form-group">
+    <label for="file-name">Ім'я файлу</label>
+    <input type="text" class="form-control" id="file-name" placeholder="Введіть ім'я файлу..." required>
+  </div>
+  <div class="form-group">
+    <label for="file-path">Шлях файлу</label>
+    <input type="text" class="form-control" id="file-path" placeholder="Введіть шлях до файлу..." required>
+  </div>
+  <div class="form-group">
+    <label for="file-type">Тип файлу</label>
+    <select class="form-control" id="file-type" required></select>
+  </div>
+  <button type="submit" class="btn btn-primary">Додати файл</button>
+</form>
+<div id="metadata-section" class="mt-4" style="display: none;">
+  <h2>Додати метадані</h2>
+  <form id="add-metadata-form">
+    <input type="hidden" id="file-id">
+    <div class="form-group">
+      <label for="metadata-type">Тип метаданної</label>
+      <select class="form-control" id="metadata-type" required></select>
+    </div>
+    <div class="form-group">
+      <label for="metadata-value">Значення метаданної</label>
+      <input type="text" class="form-control" id="metadata-value" placeholder="Введіть значення метаданної..." required>
+    </div>
+    <button type="submit" class="btn btn-primary">Додати метаданну</button>
+  </form>
+  <div id="metadata-message" class="mt-4"></div>
+  <div id="added-metadata-list" class="mt-4">
+    <h3>Додані метадані:</h3>
+    <ul id="metadata-list"></ul>
+  </div>
+</div>
+<div id="message" class="mt-4"></div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    loadFileTypes(); // Завантажити типи файлів при завантаженні сторінки
+  });
+
+  function loadFileTypes() {
+    fetch('/api/v4/filetype/')
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          const fileTypeSelect = document.getElementById('file-type');
+          fileTypeSelect.innerHTML = '';
+          data.data.fileTypes.forEach(fileType => {
+            if (fileType.file_type_id !== -1) { // Перевірка, що file_type_id не дорівнює -1
+              const option = document.createElement('option');
+              option.value = fileType.file_type_id;
+              option.textContent = fileType.type_name;
+              fileTypeSelect.appendChild(option);
+            }
+          });
+        } else {
+          console.error('Failed to load file types');
+        }
+      })
+      .catch(error => console.error('Error loading file types:', error));
+  }
+
+
+  document.getElementById('add-file-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const fileName = document.getElementById('file-name').value;
+    const filePath = document.getElementById('file-path').value;
+    const fileTypeId = document.getElementById('file-type').value;
+
+    fetch(`/api/v1/media/files/${fileTypeId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        file_name: fileName,
+        file_path: filePath
+      })
+    })
+      .then(response => response.json())
+      .then(data => {
+        const messageDiv = document.getElementById('message');
+        if (data.status === 'success') {
+          messageDiv.innerHTML = '<div class="alert alert-success">File added successfully!</div>';
+          document.getElementById('file-id').value = data.data.newFile.file_id;
+          document.getElementById('add-file-form').style.display = 'none';
+          document.getElementById('metadata-section').style.display = 'block';
+          loadSuperMetadata();
+        } else {
+          messageDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.message}</div>`;
+        }
+      })
+      .catch(error => {
+        document.getElementById('message').innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+      });
+  });
+
+  function loadSuperMetadata() {
+    fetch('/api/v5/supermetadata/')
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          const metadataTypeSelect = document.getElementById('metadata-type');
+          metadataTypeSelect.innerHTML = ''; // Очистити список перед додаванням нових опцій
+          data.data.superMetadata.forEach(metadata => {
+            const option = document.createElement('option');
+            option.value = metadata.metadata_id;
+            option.textContent = metadata.metadata_name;
+            metadataTypeSelect.appendChild(option);
+          });
+        }
+      });
+  }
+
+  document.getElementById('add-metadata-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const metadataTypeId = document.getElementById('metadata-type').value;
+    const metadataValue = document.getElementById('metadata-value').value;
+    const fileId = document.getElementById('file-id').value;
+
+    fetch('/api/v9/metadata/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        file_id: fileId,
+        metadata_id: metadataTypeId,
+        metadata_value: metadataValue
+      })
+    })
+      .then(response => response.json())
+      .then(data => {
+        const metadataMessageDiv = document.getElementById('metadata-message');
+        if (data.status === 'success') {
+          metadataMessageDiv.innerHTML = '<div class="alert alert-success">Metadata added successfully!</div>';
+          updateAddedMetadataList(fileId); // Оновлюємо список доданих метаданих
+        } else {
+          metadataMessageDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.message}</div>`;
+        }
+      })
+      .catch(error => {
+        document.getElementById('metadata-message').innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+      });
+  });
+
+  function updateAddedMetadataList(fileId) {
+    fetch(`/api/v9/metadata/${fileId}`)
+      .then(response => response.json())
+      .then(data => {
+        const metadataListContainer = document.getElementById('metadata-list');
+        metadataListContainer.innerHTML = ''; // Очистити список перед додаванням нових метаданих
+        if (data.status === 'success') {
+          data.data.metadata.forEach(metadata => {
+            const metadataItem = document.createElement('li');
+            metadataItem.innerHTML = `<strong>${metadata.metadata_name}:</strong> ${metadata.metadata_value}`;
+            metadataListContainer.appendChild(metadataItem);
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error loading metadata:', error);
+      });
+  }
+</script>
+</body>
+</html>

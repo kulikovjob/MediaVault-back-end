@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics and Statistics</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+      .bg-custom {
+          background-color: coral; /* Вкажіть свій колір */
+          color: #ffffff; /* Вкажіть колір тексту, якщо потрібно */
+      }
+  </style>
+</head>
+<body class="container">
+<div class="d-flex justify-content-between align-items-center my-4">
+  <h1>Аналітика та статистика</h1>
+</div>
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card-deck">
+      <div class="card text-white bg-primary mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Перегляди файлів за рейтингом</h5>
+          <p class="card-text">Перегляньте кількість переглядів кожного файлу по його ID</p>
+          <a href='/Analysts/getFilesByRating.html' class="btn btn-light">Перейти</a>
+        </div>
+      </div>
+      <div class="card text-white bg-success mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Перегляди за період</h5>
+          <p class="card-text">Аналізуйте кількість переглядів файлів за обраний період часу</p>
+          <a href='/Analysts/getViewsByPeriod.html' class="btn btn-light">Перейти</a>
+        </div>
+      </div>
+<!--      <div class="card text-white bg-info mb-3">-->
+<!--        <div class="card-body">-->
+<!--          <h5 class="card-title">Популярні файли</h5>-->
+<!--          <p class="card-text">Відслідкуйте самі популярні файли за певний період.</p>-->
+<!--          <a href='/Analysts/getPopularFilesByPeriod.html' class="btn btn-light">Перейти</a>-->
+<!--        </div>-->
+<!--      </div>-->
+    </div>
+    <div class="card-deck">
+      <div class="card text-white bg-warning mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Популярні автори</h5>
+          <p class="card-text">Дізнайтесь, які автори користуються найбільшою популярністю.</p>
+          <a href='/Analysts/getAuthorsByPopularity.html' class="btn btn-light">Перейти</a>
+        </div>
+      </div>
+      <div class="card text-white bg-dark mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Відсортовані файли</h5>
+          <p class="card-text">Перегляньте файли, відсортовані по різним критеріям переглядів</p>
+          <a href='/Analysts/getSortedFilesByViews.html' class="btn btn-light">Перейти</a>
+        </div>
+      </div>
+      <div class="card text-white bg-custom mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Відсортовані файли за коментарями</h5>
+          <p class="card-text">Перегляньте файли, відсортовані за коментарями</p>
+          <a href='/Analysts/getAllFilesSortedByComments.html' class="btn btn-light">Перейти</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card text-white bg-secondary mb-3">
+      <div class="card-body">
+        <h5 class="card-title" id="username">User Name</h5>
+        <p class="card-text" id="email">Email: example@example.com</p>
+        <p class="card-text" id="registration-date">Registration Date: YYYY-MM-DD</p>
+        <p class="card-text" id="position">Position: User</p>
+        <button id="logout-btn" class="btn btn-danger">Вихід</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+  function loadUserInfo() {
+    fetch('/api/v6/user/')
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          const user = data.data.user;
+          document.getElementById('username').textContent = user.first_name + ' ' + user.second_name;
+          document.getElementById('email').textContent = 'Пошта: ' + user.email;
+          document.getElementById('registration-date').textContent = 'Дата реєстрації: ' + user.registration_date.split('T')[0];
+          document.getElementById('position').textContent = 'Позиція: ' + user.position;
+        } else {
+          console.error('Failed to load user info:', data.message);
+        }
+      })
+      .catch(error => console.error('Error fetching user info:', error));
+  }
+
+  document.addEventListener('DOMContentLoaded', loadUserInfo);
+
+  document.getElementById('logout-btn').addEventListener('click', async function() {
+    const response = await fetch('/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    window.location.href = 'index.html';
+  });
+</script>
+</body>
+</html>

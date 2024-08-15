@@ -1,11 +1,12 @@
 import dotenv from 'dotenv';
 import { Genre } from '../types/types';
 import { getDatabaseInstance } from '../utils/databaseUtils';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
-export class GenreModel {
-  db = getDatabaseInstance();
+export class GenreModel extends BaseModel{
+  //db = getDatabaseInstance();
 
   async getAllGenres() {
     return this.db.manyOrNone(

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Графік популярності файлів</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="container mt-5">
+  <div class="d-flex justify-content-between align-items-center my-4">
+    <h1>Графік популярності файлів</h1>
+    <a href='/analyst.html' class="btn btn-primary">На головну</a>
+  </div>
+  <canvas id="popularityChart"></canvas>
+  <h2 class="mt-4">Детальна інформація про файли</h2>
+  <table class="table table-striped mt-3">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Ім'я файлу</th>
+      <th>Дата завантаження</th>
+      <th>Автор</th>
+      <th>Тип файлу</th>
+      <th>Рейтинг</th>
+      <th>Кількість переглядів</th>
+    </tr>
+    </thead>
+    <tbody id="filesTable">
+    <!-- Тут буде інформація про файли -->
+    </tbody>
+  </table>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+  let fileTypes = {};
+
+  document.addEventListener('DOMContentLoaded', function () {
+    fetch('/api/v4/filetype/')
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          data.data.fileTypes.forEach(type => {
+            fileTypes[type.type_name] = type.file_type_id;
+          });
+          fetchFilesData();
+        } else {
+          console.error('Failed to fetch file types:', data);
+        }
+      })
+      .catch(error => console.error('Error loading file types:', error));
+  });
+
+  function fetchFilesData() {
+    fetch('/api/v1/media/files/')
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          handleFilesData(data.data.media);
+        } else {
+          throw new Error('Data fetch was successful but server responded with error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  }
+
+  function handleFilesData(files) {
+    const fileNames = files.map(file => file.file_name);
+    const fileRatings = files.map(file => file.file_rating);
+    const viewCounts = files.map(file => fetchFileDetails(file.file_id, file.file_type));
+
+    Promise.all(viewCounts).then(views => {
+      createChart(fileNames, fileRatings, views);
+      populateTable(files, views);
+    });
+  }
+
+  function createChart(labels, ratings, views) {
+    const ctx = document.getElementById('popularityChart').getContext('2d');
+    const popularityChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Рейтинг файлу',
+          data: ratings,
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        },
+        tooltips: {
+          callbacks: {
+            label: function(tooltipItem, data) {
+              const view = views[tooltipItem.index];
+              return `${data.datasets[tooltipItem.datasetIndex].label}: ${tooltipItem.yLabel}, Views: ${view}`;
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function populateTable(files, views) {
+    const tableBody = document.getElementById('filesTable');
+    files.forEach((file, index) => {
+      const row = `
+        <tr>
+          <td>${file.file_id}</td>
+          <td>${file.file_name}</td>
+          <td>${new Date(file.upload_date).toLocaleDateString('uk-UA')}</td>
+          <td>${file.author_first_name} ${file.author_second_name}</td>
+          <td>${file.file_type}</td>
+          <td>${file.file_rating}</td>
+          <td>${views[index]}</td>
+        </tr>
+      `;
+      tableBody.innerHTML += row;
+    });
+  }
+
+  function fetchFileDetails(fileId, fileType) {
+    const fileTypeId = fileTypes[fileType];
+    if (!fileTypeId) {
+      console.error('Unrecognized file type:', fileType);
+      return Promise.resolve(0);  // Повертаємо 0, якщо тип файлу не визначено
+    }
+
+    return fetch(`/api/v7/views/${fileTypeId}/${fileId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success' && data.data[0]) {
+          return data.data[0].view_count;
+        } else {
+          throw new Error('Failed to retrieve file details');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        return 0; // Повертаємо 0 як запасний варіант для переглядів
+      });
+  }
+</script>
+</body>
+</html>

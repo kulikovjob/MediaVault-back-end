@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View File by ID</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+      .card:hover {
+          transform: scale(1.03);
+          box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+      }
+      .card-body {
+          transition: transform 0.3s, box-shadow 0.3s;
+      }
+      .card {
+          margin-bottom: 20px;
+      }
+  </style>
+</head>
+<body class="container">
+<div class="d-flex justify-content-between align-items-center my-4">
+  <h1>Перегляд файлів по ID</h1>
+  <a href='/Users.html' class="btn btn-primary">На головну</a>
+</div>
+<div id="file-list" class="row"></div>
+<div id="file-details" class="mt-4" style="display: none;"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/3.0.0/fetch.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/3.0.0/fetch.min.js"></script>
+<script>
+  const fileTypes = {};
+  let scrollPosition = 0;  // Зберігає поточну позицію прокрутки
+
+  function loadFileTypes() {
+    fetch('/api/v4/filetype/')
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          data.data.fileTypes.forEach(type => {
+            fileTypes[type.type_name] = type.file_type_id;
+          });
+        } else {
+          console.error('Failed to load file types:', data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadFileTypes();
+  });
+
+  fetch('/api/v1/media/files/')
+    .then(response => response.json())
+    .then(data => {
+      const fileList = document.getElementById('file-list');
+      if (data.status === 'success') {
+        data.data.media.forEach(file => {
+          const col = document.createElement('div');
+          col.className = 'col-md-4';
+          col.innerHTML = `
+              <div class="card mb-4 shadow-sm" data-filetype-id="${fileTypes[file.file_type]}" data-file-id="${file.file_id}">
+                <div class="card-body">
+                  <h5 class="card-title">${file.file_name}</h5>
+                  <p class="card-text">ID: ${file.file_id}</p>
+                  <p class="card-text">Дата завантаження: ${new Date(file.upload_date).toLocaleDateString()}</p>
+                  <p class="card-text">Автор: ${file.author_first_name} ${file.author_second_name}</p>
+                  <p class="card-text">Тип файлу: ${file.file_type}</p>
+                  <p class="card-text">Рейтинг: ${file.file_rating}</p>
+                  <button class="btn btn-primary view-details">Детальніше</button>
+                </div>
+              </div>
+            `;
+          col.querySelector('.view-details').addEventListener('click', () => {
+            scrollPosition = window.scrollY;  // Зберігає поточну позицію скролу
+            fetchFileDetails(fileTypes[file.file_type], file.file_id);
+          });
+          fileList.appendChild(col);
+        });
+      } else {
+        showAlert(data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      window.location.href = '/error.html';
+    });
+
+  function fetchFileDetails(filetypeId, fileId) {
+    Promise.all([
+      fetch(`/api/v1/media/files/${filetypeId}/${fileId}`).then(response => response.json()),
+      fetch(`/api/v9/metadata/${fileId}`).then(response => response.json())
+    ])
+      .then(([fileData, metadataData]) => {
+        if (fileData.status === 'success' && metadataData.status === 'success') {
+          const fileDetails = document.getElementById('file-details');
+          fileDetails.innerHTML = `
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">${fileData.data.file_name}</h5>
+                <p class="card-text">ID: ${fileData.data.file_id}</p>
+                <p class="card-text">Дата завантаження: ${new Date(fileData.data.upload_date).toLocaleDateString()}</p>
+                <p class="card-text">Автор: ${fileData.data.first_name} ${fileData.data.second_name}</p>
+                <p class="card-text">Тип файлу: ${fileData.data.file_type_name}</p>
+                <p class="card-text">Шлях файлу: ${fileData.data.file_path}</p>
+                <h5 class="mt-4">Метадані</h5>
+                ${metadataData.data.metadata.map(meta => `<p class="card-text">${meta.metadata_name}: ${meta.metadata_value}</p>`).join('')}
+                <button class="btn btn-secondary mt-3" id="back-button">Повернутись назад</button>
+              </div>
+            </div>
+          `;
+          document.getElementById('file-list').style.display = 'none';
+          fileDetails.style.display = 'block';
+          document.getElementById('back-button').addEventListener('click', () => {
+            document.getElementById('file-list').style.display = 'flex';
+            fileDetails.style.display = 'none';
+            window.scrollTo(0, scrollPosition); // Повертаємося до збереженої позиції скролу
+          });
+        } else {
+          showAlert(fileData.message || 'Failed to retrieve file details');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        window.location.href = '/error.html';
+      });
+  }
+
+  function showAlert(message) {
+    const alertContainer = document.createElement('div');
+    alertContainer.className = 'alert alert-danger alert-dismissible fade show mt-4';
+    alertContainer.role = 'alert';
+    alertContainer.innerHTML = `
+      ${message}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    `;
+    document.body.appendChild(alertContainer);
+  }
+</script>
+
+</body>
+</html>

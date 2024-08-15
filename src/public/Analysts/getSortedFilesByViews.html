@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sorted Files by Criteria</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container">
+<div class="d-flex justify-content-between align-items-center my-4">
+  <h1>Відсортовані файли за критерієм пошуку</h1>
+  <a href='/analyst.html' class="btn btn-primary">На головну</a>
+</div>
+<div>
+  <form id="criteriaForm">
+    <div class="form-group">
+      <label for="criteria">Критерій</label>
+      <select class="form-control" id="criteria" name="criteria">
+        <option value="period">Період</option>
+        <option value="release_year">Рік випуску</option>
+        <option value="author">Автор</option>
+      </select>
+    </div>
+    <div class="form-group" id="valueGroup" style="display: none;">
+      <label for="value">Значення</label>
+      <select class="form-control" id="valueSelect" name="value" style="display: none;"></select>
+      <input type="text" class="form-control" id="valueInput" name="value" style="display: none;">
+    </div>
+    <div class="form-group" id="datesGroup" style="display: none;">
+      <label for="startDate">Початкова дата</label>
+      <input type="datetime-local" class="form-control" id="startDate" name="start_date">
+      <label for="endDate">Кінцева дата</label>
+      <input type="datetime-local" class="form-control" id="endDate" name="end_date">
+    </div>
+    <button type="submit" class="btn btn-primary">Побудувати графік</button>
+  </form>
+  <div id="alertContainer" class="mt-3"></div>
+</div>
+<div>
+  <canvas id="myChart"></canvas>
+</div>
+<table class="table mt-4">
+  <thead>
+  <tr>
+    <th scope="col">ID файлу</th>
+    <th scope="col">Ім'я файлу</th>
+    <th scope="col">Кількість переглядів</th>
+  </tr>
+  </thead>
+  <tbody id="fileTableBody">
+  </tbody>
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script>
+  let chart;
+
+  document.getElementById('criteria').addEventListener('change', function() {
+    updateFormVisibility(this.value);
+  });
+
+  function updateFormVisibility(criteria) {
+    const valueGroup = document.getElementById('valueGroup');
+    const valueSelect = document.getElementById('valueSelect');
+    const valueInput = document.getElementById('valueInput');
+    const datesGroup = document.getElementById('datesGroup');
+
+    valueGroup.style.display = 'none';
+    valueSelect.style.display = 'none';
+    valueInput.style.display = 'none';
+    datesGroup.style.display = 'none';
+
+    if (criteria === 'author') {
+      valueGroup.style.display = 'block';
+      valueSelect.style.display = 'block';
+      loadAuthors();
+    } else if (criteria === 'period') {
+      datesGroup.style.display = 'block';
+    } else if (criteria === 'release_year') {
+      valueGroup.style.display = 'block';
+      valueInput.style.display = 'block';
+    }
+  }
+
+  function loadAuthors() {
+    fetch('/api/v6/users/')
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          const authors = data.data.users.filter(user => user.position === 'Authors');
+          updateAuthorList(authors);
+        } else {
+          showAlert('Failed to load authors data.');
+        }
+      })
+      .catch(error => {
+        showAlert('An error occurred while fetching authors data.');
+      });
+  }
+
+  function updateAuthorList(users) {
+    const select = document.getElementById('valueSelect');
+    select.innerHTML = '';
+    users.forEach(user => {
+      const option = document.createElement('option');
+      option.value = user.user_id;
+      option.textContent = user.first_name + ' ' + user.second_name;
+      select.appendChild(option);
+    });
+  }
+
+  document.getElementById('criteriaForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+    const criteria = formData.get('criteria');
+    let value;
+
+    if (criteria === 'author') {
+      value = document.getElementById('valueSelect').value;
+    } else if (criteria === 'release_year') {
+      value = document.getElementById('valueInput').value;
+    } // Для 'period' не потрібно значення 'value'
+
+    let requestData = { criteria: criteria };
+
+    if (criteria === 'period') {
+      requestData.start_date = formData.get('start_date');
+      requestData.end_date = formData.get('end_date');
+    } else {
+      requestData.value = value;
+    }
+
+    fetch('http://localhost:8000/api/v7/files/sorted', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestData)
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          displayChartData(data.data.filter(item => item.file_id !== 89));
+          displayTableData(data.data);
+          clearAlert();
+        } else {
+          showAlert(data.message);
+        }
+      })
+      .catch(error => {
+        showAlert('An error occurred while fetching data.');
+      });
+  });
+
+  function displayChartData(data) {
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const labels = data.map(item => item.file_name);
+    const viewCounts = data.map(item => item.views_count);
+
+    if (chart) {
+      chart.destroy();
+    }
+
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Кількість переглядів',
+          data: viewCounts,
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+
+  function displayTableData(data) {
+    const tableBody = document.getElementById('fileTableBody');
+    tableBody.innerHTML = '';
+    data.forEach(item => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${item.file_id}</td>
+        <td>${item.file_name}</td>
+        <td>${item.views_count}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  function showAlert(message) {
+    const alertContainer = document.getElementById('alertContainer');
+    alertContainer.innerHTML = `
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        ${message}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    `;
+  }
+
+  function clearAlert() {
+    const alertContainer = document.getElementById('alertContainer');
+    alertContainer.innerHTML = '';
+  }
+
+  // Додатковий виклик для встановлення початкового стану форми
+  document.addEventListener('DOMContentLoaded', function() {
+    updateFormVisibility(document.getElementById('criteria').value);
+  });
+</script>
+</body>
+</html>

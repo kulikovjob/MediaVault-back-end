@@ -1,11 +1,12 @@
 import dotenv from 'dotenv';
 import { FileType, SuperMetadata } from '../types/types';
 import { getDatabaseInstance } from '../utils/databaseUtils';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
-export class SuperMetadataModel {
-  db = getDatabaseInstance()
+export class SuperMetadataModel extends BaseModel{
+  //db = getDatabaseInstance()
 
   async getAllSuperMetadata() {
     return this.db.manyOrNone(

@@ -1,14 +1,15 @@
 import dotenv from 'dotenv';
 import { User } from '../types/types';
 import { getDatabaseInstance } from '../utils/databaseUtils';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
-export class UserModel {
-    db = getDatabaseInstance();
+export class UserModel extends BaseModel{
+    //db = getDatabaseInstance();
     async getAllUsers() {
         return this.db.manyOrNone(`
-            SELECT user_id, first_name, second_name, email, username, registration_date 
+            SELECT user_id, first_name, second_name, email, username, registration_date, position 
             FROM "User";
         `)
     }
@@ -16,6 +17,12 @@ export class UserModel {
     async getUserForCurrentUser() {
         return this.db.oneOrNone(`
             Select * from get_user_by_current_user();
+        `);
+    }
+
+    async userActivity() {
+        return this.db.oneOrNone(`
+            Select * from UserActivity;
         `);
     }
 

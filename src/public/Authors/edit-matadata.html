@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Файли</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+  <div class="d-flex justify-content-between align-items-center my-4">
+    <h1>Мої файли</h1>
+    <a href='/Authors.html' class="btn btn-primary">На головну</a>
+  </div>
+  <div id="filesContainer" class="row">
+    <!-- Карточки файлів будуть тут -->
+  </div>
+</div>
+
+<!-- Модальне вікно для додавання метаданих -->
+<div class="modal fade" id="addMetadataModal" tabindex="-1" role="dialog" aria-labelledby="addMetadataModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addMetadataModalLabel">Додати метадані</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="addMetadataForm">
+          <div class="form-group">
+            <label for="metadataSelect">Тип метаданих</label>
+            <select class="form-control" id="metadataSelect"></select>
+          </div>
+          <div class="form-group">
+            <label for="metadataValue">Значення метаданих</label>
+            <input type="text" class="form-control" id="metadataValue" required>
+          </div>
+          <input type="hidden" id="fileIdHidden">
+          <button type="submit" class="btn btn-primary">Додати</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+  let superMetadata = [];
+
+  document.addEventListener('DOMContentLoaded', function () {
+    fetch('/api/v5/supermetadata', { method: 'GET' })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          superMetadata = data.data.superMetadata;
+          const metadataSelect = document.getElementById('metadataSelect');
+          superMetadata.forEach(md => {
+            const option = document.createElement('option');
+            option.value = md.metadata_id;
+            option.textContent = md.metadata_name;
+            metadataSelect.appendChild(option);
+          });
+        } else {
+          console.error('Failed to fetch supermetadata:', data);
+        }
+      })
+      .catch(error => console.error('Error loading supermetadata:', error));
+
+    fetch('/api/v1/media/files/user', { method: 'GET' })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          const filesContainer = document.getElementById('filesContainer');
+          const filesMap = new Map();
+
+          data.data.media.forEach(file => {
+            if (!filesMap.has(file.file_id)) {
+              filesMap.set(file.file_id, {
+                ...file,
+                metadata: []
+              });
+            }
+            if (file.metadata_name && file.metadata_value) {
+              filesMap.get(file.file_id).metadata.push({
+                metadata_id: file.file_metadata_id,
+                name: file.metadata_name,
+                value: file.metadata_value
+              });
+            }
+          });
+
+          filesMap.forEach(file => {
+            const metadataHtml = file.metadata.length > 0
+              ? file.metadata.map(md => `
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <p class="mb-0">${md.name}: ${md.value}</p>
+                            <div>
+                                <button class="btn btn-sm btn-info" onclick="updateMetadata(${md.metadata_id}, '${md.value}')">оновити</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteMetadata(${md.metadata_id})">видалити</button>
+                            </div>
+                        </div>
+                    `).join('')
+              : '<p>Немає метаданих</p>';
+
+            const fileHTML = `
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">${file.file_name}</h5>
+                                <p class="card-text">${file.first_name} ${file.second_name}</p>
+                                <p class="card-text">${file.file_type_name}</p>
+                                <p class="card-text"><small class="text-muted">Upload date: ${new Date(file.upload_date).toLocaleDateString('uk-UA')}</small></p>
+                                ${metadataHtml}
+                                <button class="btn btn-primary mt-2" onclick="showAddMetadataModal(${file.file_id})">Додати метадані</button>
+
+                            </div>
+                        </div>
+                    </div>
+                `;
+            filesContainer.innerHTML += fileHTML;
+          });
+        } else {
+          console.error('Failed to fetch files:', data);
+        }
+      })
+      .catch(error => console.error('Error loading files:', error));
+  });
+
+  function showAddMetadataModal(fileId) {
+    document.getElementById('fileIdHidden').value = fileId;
+    $('#addMetadataModal').modal('show');
+  }
+
+  document.getElementById('addMetadataForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const fileId = document.getElementById('fileIdHidden').value;
+    const metadataId = document.getElementById('metadataSelect').value;
+    const metadataValue = document.getElementById('metadataValue').value;
+
+    fetch('/api/v9/metadata/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer yourtokenhere' // Додайте авторизацію, якщо потрібно
+      },
+      body: JSON.stringify({
+        file_id: fileId,
+        metadata_id: metadataId,
+        metadata_value: metadataValue
+      })
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          alert('Метадані додано успішно.');
+          window.location.reload(); // Оновлення сторінки для відображення нових даних
+        } else {
+          alert('Не вдалося додати метадані. ' + data.message);
+        }
+      })
+      .catch(error => console.error('Error adding metadata:', error));
+  });
+
+  function updateMetadata(metadataId, currentValue) {
+    const newValue = prompt('Введіть нове значення для метаданих:', currentValue);
+    if (newValue !== null && newValue !== currentValue) {
+      fetch(`/api/v9/metadata/${metadataId}`, {
+        method: 'PATCH', // PUT для оновлення ресурсу
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer yourtokenhere'  // Додайте авторизацію, якщо потрібно
+        },
+        body: JSON.stringify({ metadata_value: newValue })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            alert('Метадані оновлено успішно.');
+            window.location.reload(); // Оновлення сторінки для відображення нових даних
+          } else {
+            alert('Не вдалося оновити метадані. ' + data.message);
+          }
+        })
+        .catch(error => console.error('Error updating metadata:', error));
+    }
+  }
+
+  function deleteMetadata(metadataId) {
+    if (confirm('Ви впевнені, що хочете видалити ці метадані?')) {
+      fetch(`/api/v9/metadata/${metadataId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer yourtokenhere'  // Додайте авторизацію, якщо потрібно
+        }
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            alert('Метадані видалено успішно.');
+            window.location.reload(); // Оновлення сторінки для відображення нових даних
+          } else {
+            alert('Не вдалося видалити метадані. ' + data.message);
+          }
+        })
+        .catch(error => console.error('Error deleting metadata:', error));
+    }
+  }
+</script>
+</body>
+</html>

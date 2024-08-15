@@ -21,6 +21,16 @@ export const getAllUsers = catchAsync(
   },
 );
 
+export const UserActivity = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const users = await User.userActivity(); // Используем тип файла для получения файлов определенного типа
+
+    res
+      .status(200)
+      .json({ status: 'success', length: users.length, data: { users } });
+  },
+);
+
 export const getUserForCurrentUser = catchAsync(
   async (req: Request, res: Response) => {
     const user = await User.getUserForCurrentUser();

@@ -31,6 +31,14 @@ export const getViewsByPeriod = catchAsync(
       return res.status(400).json({ status: 'error', message: 'Start date and end date are required' });
     }
 
+    const startDate = new Date(start_date);
+    const endDate = new Date(end_date);
+
+    // Проверка, что конечная дата не раньше начальной
+    if (endDate < startDate) {
+      return res.status(400).json({ status: 'error', message: 'End date cannot be earlier than start date' });
+    }
+
     const views = await View.getViewsByPeriod(new Date(start_date), new Date(end_date));
 
     res.status(200).json({ status: 'success', data: views });
@@ -46,6 +54,13 @@ export const getPopularFilesByPeriod = catchAsync(
       return res.status(400).json({ status: 'error', message: 'Start date and end date are required' });
     }
 
+    const startDate = new Date(start_date);
+    const endDate = new Date(end_date);
+
+    // Проверка, что конечная дата не раньше начальной
+    if (endDate < startDate) {
+      return res.status(400).json({ status: 'error', message: 'End date cannot be earlier than start date' });
+    }
     const views = await View.getPopularFilesByPeriod(new Date(start_date), new Date(end_date));
 
     res.status(200).json({ status: 'success', data: views });
@@ -59,6 +74,14 @@ export const getPopularGenresByPeriod = catchAsync(
     // Проверка наличия данных для запроса
     if (!start_date || !end_date) {
       return res.status(400).json({ status: 'error', message: 'Start date and end date are required' });
+    }
+
+    const startDate = new Date(start_date);
+    const endDate = new Date(end_date);
+
+    // Проверка, что конечная дата не раньше начальной
+    if (endDate < startDate) {
+      return res.status(400).json({ status: 'error', message: 'End date cannot be earlier than start date' });
     }
 
     const views = await View.getPopularGenresByPeriod(new Date(start_date), new Date(end_date));
@@ -76,6 +99,14 @@ export const getPopularTagsByPeriod = catchAsync(
       return res.status(400).json({ status: 'error', message: 'Start date and end date are required' });
     }
 
+    const startDate = new Date(start_date);
+    const endDate = new Date(end_date);
+
+    // Проверка, что конечная дата не раньше начальной
+    if (endDate < startDate) {
+      return res.status(400).json({ status: 'error', message: 'End date cannot be earlier than start date' });
+    }
+
     const views = await View.getPopularTagsByPeriod(new Date(start_date), new Date(end_date));
 
     res.status(200).json({ status: 'success', data: views });
@@ -91,6 +122,14 @@ export const getAuthorsByPopularity = catchAsync(
       return res.status(400).json({ status: 'error', message: 'Start date and end date are required' });
     }
 
+    const startDate = new Date(start_date);
+    const endDate = new Date(end_date);
+
+    // Проверка, что конечная дата не раньше начальной
+    if (endDate < startDate) {
+      return res.status(400).json({ status: 'error', message: 'End date cannot be earlier than start date' });
+    }
+
     const views = await View.getAuthorsByPopularity(new Date(start_date), new Date(end_date));
 
     res.status(200).json({ status: 'success', data: views });
@@ -100,7 +139,27 @@ export const getAuthorsByPopularity = catchAsync(
 export const getSortedFilesByViews = catchAsync(
   async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
 
+    const { start_date, end_date } = req.body;
+
+
+    const startDate = new Date(start_date);
+    const endDate = new Date(end_date);
+
+    // Проверка, что конечная дата не раньше начальной
+    if (endDate < startDate) {
+      return res.status(400).json({ status: 'error', message: 'End date cannot be earlier than start date' });
+    }
+
     const views = await View.getSortedFilesByViews({...req.body} );
+
+    res.status(200).json({ status: 'success', data: views });
+  },
+);
+
+export const getAllFilesSortedByComments = catchAsync(
+  async (req: Request<RequestParams>, res: Response, next: NextFunction) => {
+
+    const views = await View.getAllFilesSortedByComments();
 
     res.status(200).json({ status: 'success', data: views });
   },

@@ -1,17 +1,22 @@
 import dotenv from 'dotenv';
 import { Comment, View } from '../types/types';
 import { getDatabaseInstance } from '../utils/databaseUtils';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
-export class ViewModel {
-  db = getDatabaseInstance();
+export class ViewModel extends BaseModel{
+  //db = getDatabaseInstance();
 
   async getViewsByFileId(fileId: string, fileTypeId: string) {
     return this.db.any('SELECT * FROM public.get_views_by_file_id($1, $2)', [
       parseInt(fileTypeId, 10),
       parseInt(fileId, 10),
     ]);
+  }
+
+  async getAllFilesSortedByComments() {
+    return this.db.any('SELECT * FROM files_sorted_by_comments');
   }
 
   async getViewsByPeriod(startDate: Date, endDate: Date) {

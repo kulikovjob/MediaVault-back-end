@@ -1,0 +1,4 @@
+const connectingString = getDatabaseConnectionUrl('Alice', '123');
+const connectingString = getDatabaseConnectionUrl('john_doe', '123');
+const connectingString = getDatabaseConnectionUrl('alex_johnson', '456');
+const connectingString = getDatabaseConnectionUrl('Vadim', '123');

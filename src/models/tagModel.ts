@@ -1,11 +1,12 @@
 import dotenv from 'dotenv';
 import { Tag } from '../types/types';
 import { getDatabaseInstance } from '../utils/databaseUtils';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
-export class TagModel {
-  db = getDatabaseInstance();
+export class TagModel extends BaseModel{
+  //db = getDatabaseInstance();
 
   async getAllTags() {
     return this.db.manyOrNone(

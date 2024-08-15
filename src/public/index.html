@@ -1,0 +1,350 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8">-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--  <title>File Management System</title>-->
+<!--  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">-->
+<!--</head>-->
+<!--<body class="container">-->
+<!--<h1 class="my-4">File Management System</h1>-->
+<!--<div class="row">-->
+<!--  <div class="col-md-8">-->
+<!--    <div class="list-group">-->
+<!--      <a href="/view-all-files.html" class="list-group-item list-group-item-action">Просмотр всех файлов</a>-->
+<!--      <a href="/view-file-by-id.html" class="list-group-item list-group-item-action">Просмотр файла по ID</a>-->
+<!--      <a href="/add-file.html" class="list-group-item list-group-item-action">Добавление файла</a>-->
+<!--      <a href="/update-delete-file.html" class="list-group-item list-group-item-action">Обновление/Удаление файла</a>-->
+<!--      <a href="/analyst.html" class="list-group-item list-group-item-action">Аналитика</a>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--  <div class="col-md-4">-->
+<!--    <div class="card">-->
+<!--      <div class="card-body">-->
+<!--        <h5 class="card-title" id="username">User Name</h5>-->
+<!--        <p class="card-text" id="email">Email: example@example.com</p>-->
+<!--        <p class="card-text" id="registration-date">Registration Date: YYYY-MM-DD</p>-->
+<!--        <p class="card-text" id="position">Position: User</p>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
+
+<!--<script>-->
+<!--  function loadUserInfo() {-->
+<!--    fetch('/api/v6/user/')-->
+<!--      .then(response => response.json())-->
+<!--      .then(data => {-->
+<!--        if (data.status === 'success') {-->
+<!--          const user = data.data.user;-->
+<!--          document.getElementById('username').textContent = user.first_name + ' ' + user.second_name;-->
+<!--          document.getElementById('email').textContent = 'Email: ' + user.email;-->
+<!--          document.getElementById('registration-date').textContent = 'Registration Date: ' + user.registration_date.split('T')[0];-->
+<!--          document.getElementById('position').textContent = 'Position: ' + user.position;-->
+<!--        } else {-->
+<!--          console.error('Failed to load user info:', data.message);-->
+<!--        }-->
+<!--      })-->
+<!--      .catch(error => console.error('Error fetching user info:', error));-->
+<!--  }-->
+
+<!--  document.addEventListener('DOMContentLoaded', loadUserInfo);-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8">-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--  <title>Login Page</title>-->
+<!--  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">-->
+<!--</head>-->
+<!--<body class="container">-->
+<!--<div class="row justify-content-center">-->
+<!--  <div class="col-md-6">-->
+<!--    <h2 class="mt-5">Login</h2>-->
+<!--    <form id="login-form">-->
+<!--      <div class="form-group">-->
+<!--        <label for="username">Username</label>-->
+<!--        <input type="text" class="form-control" id="username" required>-->
+<!--      </div>-->
+<!--      <div class="form-group">-->
+<!--        <label for="password">Password</label>-->
+<!--        <input type="password" class="form-control" id="password" required>-->
+<!--      </div>-->
+<!--      <button type="submit" class="btn btn-primary">Login</button>-->
+<!--    </form>-->
+<!--  </div>-->
+<!--</div>-->
+
+<!--<script>-->
+<!--  document.getElementById('login-form').addEventListener('submit', async function (event) {-->
+<!--    event.preventDefault();-->
+<!--    const username = document.getElementById('username').value;-->
+<!--    const password = document.getElementById('password').value;-->
+
+<!--    const response = await fetch('/login', {-->
+<!--      method: 'POST',-->
+<!--      headers: {-->
+<!--        'Content-Type': 'application/json'-->
+<!--      },-->
+<!--      body: JSON.stringify({ username, password })-->
+<!--    });-->
+
+<!--    if (response.ok) {-->
+<!--      alert('Login successful!');-->
+<!--      window.location.href = 'login.html';-->
+<!--    } else {-->
+<!--      alert('Login failed. Please check your credentials and try again.');-->
+<!--    }-->
+<!--  });-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
+
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8">-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--  <title>Login Page</title>-->
+<!--  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">-->
+<!--</head>-->
+<!--<body class="container">-->
+<!--<div class="row justify-content-center">-->
+<!--  <div class="col-md-6">-->
+<!--    <h2 class="mt-5">Авторизація</h2>-->
+<!--    <form id="login-form">-->
+<!--      <div class="form-group">-->
+<!--        <label for="username">Логін</label>-->
+<!--        <input type="text" class="form-control" id="username" required>-->
+<!--      </div>-->
+<!--      <div class="form-group">-->
+<!--        <label for="password">Пароль</label>-->
+<!--        <input type="password" class="form-control" id="password" required>-->
+<!--      </div>-->
+<!--      <button type="submit" class="btn btn-primary">Увійти</button>-->
+<!--    </form>-->
+<!--  </div>-->
+<!--</div>-->
+
+<!--<script>-->
+<!--  document.getElementById('login-form').addEventListener('submit', async function (event) {-->
+<!--    event.preventDefault();-->
+<!--    const username = document.getElementById('username').value;-->
+<!--    const password = document.getElementById('password').value;-->
+
+<!--    const response = await fetch('/login', {-->
+<!--      method: 'POST',-->
+<!--      headers: {-->
+<!--        'Content-Type': 'application/json'-->
+<!--      },-->
+<!--      body: JSON.stringify({ username, password })-->
+<!--    });-->
+
+<!--    if (response.ok) {-->
+<!--      const userResponse = await fetch('/api/v6//user/', {-->
+<!--        method: 'GET',-->
+<!--        headers: {-->
+<!--          'Content-Type': 'application/json'-->
+<!--        }-->
+<!--      });-->
+
+<!--      if (userResponse.ok) {-->
+<!--        const userData = await userResponse.json();-->
+<!--        const position = userData.data.user.position;-->
+
+<!--        switch(position) {-->
+<!--          case 'Users':-->
+<!--            window.location.href = 'Users.html';-->
+<!--            break;-->
+<!--          case 'Authors':-->
+<!--            window.location.href = 'Authors.html';-->
+<!--            break;-->
+<!--          case 'Analysts':-->
+<!--            window.location.href = 'analyst.html';-->
+<!--            break;-->
+<!--          case 'Admins':-->
+<!--            window.location.href = 'Admins.html';-->
+<!--            break;-->
+<!--          default:-->
+<!--            alert('Unknown position. Unable to redirect.');-->
+<!--        }-->
+<!--      } else {-->
+<!--        alert('Failed to fetch user data.');-->
+<!--      }-->
+<!--    } else {-->
+<!--      alert('Login failed. Please check your credentials and try again.');-->
+<!--    }-->
+<!--  });-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8">-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--  <title>Login Page</title>-->
+<!--  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">-->
+<!--</head>-->
+<!--<body class="container">-->
+<!--<div class="row justify-content-center mt-5">-->
+<!--  <div class="col-md-6">-->
+<!--    <h2>Авторизація</h2>-->
+<!--    <form id="login-form">-->
+<!--      <div class="form-group">-->
+<!--        <label for="username">Логін</label>-->
+<!--        <input type="text" class="form-control" id="username" required>-->
+<!--      </div>-->
+<!--      <div class="form-group">-->
+<!--        <label for="password">Пароль</label>-->
+<!--        <input type="password" class="form-control" id="password" required>-->
+<!--      </div>-->
+<!--      <button type="submit" class="btn btn-primary">Увійти</button>-->
+<!--    </form>-->
+<!--    &lt;!&ndash; Місце для відображення повідомлень &ndash;&gt;-->
+<!--    <div id="alertContainer" class='mt-4'></div>-->
+<!--  </div>-->
+<!--</div>-->
+<!--<script>-->
+<!--  document.getElementById('login-form').addEventListener('submit', async function(event) {-->
+<!--    event.preventDefault();-->
+<!--    const username = document.getElementById('username').value;-->
+<!--    const password = document.getElementById('password').value;-->
+
+<!--    const response = await fetch('/login', {-->
+<!--      method: 'POST',-->
+<!--      headers: {'Content-Type': 'application/json'},-->
+<!--      body: JSON.stringify({ username, password })-->
+<!--    });-->
+
+<!--    if (response.ok) {-->
+<!--      const userResponse = await fetch('/api/v6/user/', {-->
+<!--        method: 'GET',-->
+<!--        headers: {'Content-Type': 'application/json'}-->
+<!--      });-->
+
+<!--      if (userResponse.ok) {-->
+<!--        const userData = await userResponse.json();-->
+<!--        const position = userData.data.user.position;-->
+<!--        switch(position) {-->
+<!--          case 'Users': window.location.href = 'Users.html'; break;-->
+<!--          case 'Authors': window.location.href = 'Authors.html'; break;-->
+<!--          case 'Analysts': window.location.href = 'analyst.html'; break;-->
+<!--          case 'Admins': window.location.href = 'Admins.html'; break;-->
+<!--          default: showAlert('Unknown position. Unable to redirect.', false); break;-->
+<!--        }-->
+<!--      } else {-->
+<!--        // При помилці у другому запиті, показуємо помилку з сервера-->
+<!--        const errorData = await userResponse.json();-->
+<!--        showAlert(errorData.message, false);-->
+<!--      }-->
+<!--    } else {-->
+<!--      // При помилці авторизації, показуємо помилку з сервера-->
+<!--      const errorData = await response.json();-->
+<!--      showAlert(errorData.message, false);-->
+<!--    }-->
+<!--  });-->
+
+<!--  function showAlert(message, isSuccess = true, containerId = 'alertContainer') {-->
+<!--    const alertContainer = document.getElementById(containerId);-->
+<!--    const alertType = isSuccess ? 'alert-success' : 'alert-danger';-->
+<!--    alertContainer.innerHTML = `-->
+<!--    <div class="alert ${alertType} alert-dismissible fade show" role="alert">-->
+<!--      ${message}-->
+<!--      <button type="button" class="close" data-dismiss="alert" aria-label="Close">-->
+<!--        <span aria-hidden="true">&times;</span>-->
+<!--      </button>-->
+<!--    </div>-->
+<!--  `;-->
+<!--  }-->
+
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body class="container">
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6">
+    <h2>Авторизація</h2>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="username">Логін</label>
+        <input type="text" class="form-control" id="username" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Пароль</label>
+        <input type="password" class="form-control" id="password" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Увійти</button>
+    </form>
+    <div id="alertContainer" class="mt-4"></div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('login-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    const response = await fetch('/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ username, password })
+    });
+
+    if (response.ok) {
+      const userResponse = await fetch('/api/v6/user/', {
+        method: 'GET',
+        headers: {'Content-Type': 'application/json'}
+      });
+
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        const position = userData.data.user.position;
+        switch(position) {
+          case 'Users': window.location.href = 'Users.html'; break;
+          case 'Authors': window.location.href = 'Authors.html'; break;
+          case 'Analysts': window.location.href = 'analyst.html'; break;
+          case 'Admins': window.location.href = 'Admins.html'; break;
+          default: showAlert('Unknown position. Unable to redirect.', false); break;
+        }
+      } else {
+        const errorData = await userResponse.json();
+        showAlert(errorData.message, false);
+      }
+    } else {
+      const errorData = await response.json();
+      showAlert(errorData.message, false);
+    }
+  });
+
+  function showAlert(message, isSuccess = true, containerId = 'alertContainer') {
+    const alertContainer = document.getElementById(containerId);
+    const alertType = isSuccess ? 'alert-success' : 'alert-danger';
+    alertContainer.innerHTML = `<div class="alert ${alertType} alert-dismissible fade show" role="alert">
+    ${message}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>`;
+  }
+</script>
+</body>
+</html>

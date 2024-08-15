@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View File by Period</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container">
+<div class="d-flex justify-content-between align-items-center my-4">
+  <h1>Перегляди файлів за певний період</h1>
+  <a href='/analyst.html' class="btn btn-primary">На головну</a>
+</div>
+<div>
+  <form id="dateForm">
+    <div class="form-group">
+      <label for="startDate">Початкова дата</label>
+      <input type="datetime-local" class="form-control" id="startDate" name="start_date">
+    </div>
+    <div class="form-group">
+      <label for="endDate">Кінцева дата</label>
+      <input type="datetime-local" class="form-control" id="endDate" name="end_date">
+    </div>
+    <button type="submit" class="btn btn-primary">Побудувати графік</button>
+  </form>
+  <div id="alertContainer" class="mt-3"></div>
+</div>
+<div>
+  <canvas id="myChart"></canvas>
+</div>
+<table class="table mt-4">
+  <thead>
+  <tr>
+    <th scope="col">ID файлу</th>
+    <th scope="col">Ім'я файлу</th>
+    <th scope="col">Кількість переглядів</th>
+  </tr>
+  </thead>
+  <tbody id="fileTableBody">
+  </tbody>
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script>
+  let chart;
+
+  const fileTypes = {
+    "Image": 1,
+    "Video": 2,
+    "Audio": 3,
+    "Document": 4
+  };
+
+  document.getElementById('dateForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+    const requestData = {
+      start_date: formData.get('start_date'),
+      end_date: formData.get('end_date')
+    };
+
+    fetch('/api/v7/views/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestData)
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          displayChartData(data.data.filter(item => item.file_id !== 89));
+          displayTableData(data.data);
+          resetForm();
+          clearAlert();
+        } else {
+          showAlert(data.message);
+        }
+      })
+      .catch(error => {
+        showAlert('An error occurred while fetching data.');
+      });
+  });
+
+  function displayChartData(data) {
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const labels = data.map(item => item.file_name);
+    const viewCounts = data.map(item => item.view_count);
+
+    if (chart) {
+      chart.destroy();
+    }
+
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Кількість переглядів',
+          data: viewCounts,
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          yAxes: [{
+            ticks: {
+              beginAtZero: true
+            }
+          }]
+        }
+      }
+    });
+  }
+
+  function displayTableData(data) {
+    const tableBody = document.getElementById('fileTableBody');
+    tableBody.innerHTML = '';
+    data.forEach(item => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${item.file_id}</td>
+        <td>${item.file_name}</td>
+        <td>${item.view_count}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  function showAlert(message) {
+    const alertContainer = document.getElementById('alertContainer');
+    alertContainer.innerHTML = `
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        ${message}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    `;
+  }
+
+  function clearAlert() {
+    const alertContainer = document.getElementById('alertContainer');
+    alertContainer.innerHTML = '';
+  }
+
+  function resetForm() {
+    document.getElementById('dateForm').reset();
+  }
+</script>
+</body>
+</html>

@@ -3,13 +3,14 @@
 import dotenv from 'dotenv';
 import { File } from '../types/types';
 import { getDatabaseInstance } from '../utils/databaseUtils';
+import { BaseModel } from './baseModel';
 
 dotenv.config({ path: './.env' });
 
 // eslint-disable-next-line import/prefer-default-export
 
-export class MediaModel {
-  db = getDatabaseInstance();
+export class MediaModel extends BaseModel{
+  //db = getDatabaseInstance();
 
   async getAllMediaFilesInfo() {
     return this.db.manyOrNone(
@@ -18,6 +19,15 @@ export class MediaModel {
       `
     );
   }
+
+  async getViewUserFiles() {
+    return this.db.manyOrNone(
+      `
+        SELECT * FROM view_user_files;
+      `
+    );
+  }
+
   async getAllMediaFiles(fileTypeId: string) {
     return this.db.manyOrNone(
       `
@@ -48,6 +58,7 @@ export class MediaModel {
         mf.file_id,
         mf.file_name,
         mf.upload_date,
+        mf.file_path,
         u.first_name,
         u.second_name,
         ft.type_name AS file_type_name
@@ -85,6 +96,34 @@ export class MediaModel {
 
 
   async deleteFileById(filetypeId: string, fileId: string) {
+    // Отримуємо ідентифікатор поточного користувача
+    const currentUser = await this.db.one(
+      `
+      SELECT u.user_id
+      FROM "User" u
+      WHERE u.username = current_user;
+    `
+    );
+
+    // Отримуємо інформацію про файл
+    const file = await this.db.oneOrNone(
+      `
+      SELECT uploader_id
+      FROM public.multimediafile
+      WHERE file_id = $1
+    `,
+      [fileId]
+    );
+
+    // Перевіряємо, чи існує файл
+    if (!file) {
+      throw new Error('Файл не знайдено');
+    }
+
+    // Перевіряємо, чи користувач є автором файлу
+    if (file.uploader_id !== currentUser.user_id) {
+      throw new Error('Ви не є автором цього файлу');
+    }
     return this.db.none(
       'DELETE FROM public.multimediafile WHERE file_id = $1 AND file_type_id = $2',
       [fileId, filetypeId],
@@ -92,18 +131,48 @@ export class MediaModel {
   }
 
   async updateFile(filetypeId: string, fileId: string, newData: any) {
+    // Отримуємо ідентифікатор поточного користувача
+    const currentUser = await this.db.one(
+      `
+      SELECT u.user_id
+      FROM "User" u
+      WHERE u.username = current_user;
+    `
+    );
+
+    // Отримуємо інформацію про файл
+    const file = await this.db.oneOrNone(
+      `
+      SELECT uploader_id
+      FROM public.multimediafile
+      WHERE file_id = $1
+    `,
+      [fileId]
+    );
+
+    // Перевіряємо, чи існує файл
+    if (!file) {
+      throw new Error('Файл не знайдено');
+    }
+
+    // Перевіряємо, чи користувач є автором файлу
+    if (file.uploader_id !== currentUser.user_id) {
+      throw new Error('Ви не є автором цього файлу');
+    }
+
+    // Оновлюємо файл
     return this.db.one(
       `
-        UPDATE public.multimediafile
-        SET
-          ${Object.keys(newData)
-            .filter((key) => newData[key] !== undefined)
-            .map((key, index) => `${key} = $${index + 1}`)
-            .join(', ')}
-        WHERE file_id = $${Object.keys(newData).length + 1}
-        AND file_type_id = $${Object.keys(newData).length + 2}
-        RETURNING *;
-      `,
+      UPDATE public.multimediafile
+      SET
+        ${Object.keys(newData)
+        .filter((key) => newData[key] !== undefined)
+        .map((key, index) => `${key} = $${index + 1}`)
+        .join(', ')}
+      WHERE file_id = $${Object.keys(newData).length + 1}
+      AND file_type_id = $${Object.keys(newData).length + 2}
+      RETURNING *;
+    `,
       [
         ...Object.values(newData).filter((value) => value !== undefined),
         fileId,
@@ -111,6 +180,7 @@ export class MediaModel {
       ],
     );
   }
+
 
   async getId() {
     return this.db.oneOrNone('SELECT MAX(file_id) FROM public.multimediafile');

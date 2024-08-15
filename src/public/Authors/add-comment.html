@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View All Files</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+</head>
+<body class="container">
+<div class="d-flex justify-content-between align-items-center my-4">
+  <h1>Додавання коментарів</h1>
+  <a href='/Authors.html' class="btn btn-primary">На головну</a>
+</div>
+<div id="alertContainer" class="mt-3"></div>
+<div id="file-list" class="row"></div>
+
+<a href='/Authors.html' class="btn btn-primary mt-4">На головну</a>
+
+<script>
+  const fileTypes = {
+    "Image": 1,
+    "Video": 2,
+    "Audio": 3,
+    "Document": 4
+  };
+
+  fetch('/api/v1/media/files/')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch files');
+      }
+      return response.json();
+    })
+    .then(data => {
+      const fileList = document.getElementById('file-list');
+      if (data.status === 'success') {
+        data.data.media.forEach(file => {
+          const col = document.createElement('div');
+          col.className = 'col-md-4';
+          col.innerHTML = `
+              <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title">${file.file_name}</h5>
+                  <p class="card-text">ID: ${file.file_id}</p>
+                  <p class="card-text">Дата завантаження: ${new Date(file.upload_date).toLocaleDateString()}</p>
+                  <p class="card-text">Автор: ${file.author_first_name} ${file.author_second_name}</p>
+                  <p class="card-text">Тип файлу: ${file.file_type}</p>
+                  <p class="card-text">Рейтинг: ${file.file_rating}</p>
+                  <textarea class="form-control mb-2" id="comment-${file.file_id}" placeholder="Введіть свій коментар..."></textarea>
+                  <button class="btn btn-primary" onclick="addComment(${file.file_id})">Додати коментар</button>
+                </div>
+              </div>
+            `;
+          fileList.appendChild(col);
+        });
+      } else {
+        throw new Error(data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showAlert(error.message, false);
+    });
+
+  function addComment(fileId) {
+    const commentText = document.getElementById(`comment-${fileId}`).value;
+    if (commentText.trim() === "") {
+      showAlert('Comment text cannot be empty', false);
+      return;
+    }
+    fetch('/api/v8/comments/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        file_id: fileId.toString(),
+        comment_text: commentText
+      })
+    }).then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          showAlert('Коментар успішно додано', true);
+        } else {
+          showAlert(data.message, false);
+        }
+      }).catch(error => {
+      showAlert(error.message, false);
+    });
+  }
+
+  function showAlert(message, isSuccess = true, containerId = 'alertContainer') {
+    const alertContainer = document.getElementById(containerId);
+    const alertType = isSuccess ? 'alert-success' : 'alert-danger';
+    alertContainer.innerHTML = `
+    <div class="alert ${alertType} alert-dismissible fade show" role="alert">
+      ${message}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  `;
+  }
+
+  //function redirectToErrorPage(errorMessage) {
+  //   const errorLink = document.createElement('a');
+  //   errorLink.href = `/error.html?message=${errorMessage}`;
+  //   errorLink.className = 'btn btn-danger mt-4';
+  //   errorLink.textContent = 'View Error Details';
+  //   document.body.appendChild(errorLink);
+  //   setTimeout(() => {
+  //     window.location.href = errorLink.href;
+  //   }, 3000); // Redirect after 3 seconds
+  // }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!--&lt;!&ndash;<!DOCTYPE html>&ndash;&gt;-->
+<!--&lt;!&ndash;<html lang="en">&ndash;&gt;-->
+<!--&lt;!&ndash;<head>&ndash;&gt;-->
+<!--&lt;!&ndash;  <meta charset="UTF-8">&ndash;&gt;-->
+<!--&lt;!&ndash;  <meta name="viewport" content="width=device-width, initial-scale=1.0">&ndash;&gt;-->
+<!--&lt;!&ndash;  <title>Login Page</title>&ndash;&gt;-->
+<!--&lt;!&ndash;  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">&ndash;&gt;-->
+<!--&lt;!&ndash;</head>&ndash;&gt;-->
+<!--&lt;!&ndash;<body class="container">&ndash;&gt;-->
+<!--&lt;!&ndash;<div class="row justify-content-center">&ndash;&gt;-->
+<!--&lt;!&ndash;  <div class="col-md-6">&ndash;&gt;-->
+<!--&lt;!&ndash;    <h2 class="mt-5">Login</h2>&ndash;&gt;-->
+<!--&lt;!&ndash;    <form id="login-form">&ndash;&gt;-->
+<!--&lt;!&ndash;      <div class="form-group">&ndash;&gt;-->
+<!--&lt;!&ndash;        <label for="username">Username</label>&ndash;&gt;-->
+<!--&lt;!&ndash;        <input type="text" class="form-control" id="username" required>&ndash;&gt;-->
+<!--&lt;!&ndash;      </div>&ndash;&gt;-->
+<!--&lt;!&ndash;      <div class="form-group">&ndash;&gt;-->
+<!--&lt;!&ndash;        <label for="password">Password</label>&ndash;&gt;-->
+<!--&lt;!&ndash;        <input type="password" class="form-control" id="password" required>&ndash;&gt;-->
+<!--&lt;!&ndash;      </div>&ndash;&gt;-->
+<!--&lt;!&ndash;      <button type="submit" class="btn btn-primary">Login</button>&ndash;&gt;-->
+<!--&lt;!&ndash;    </form>&ndash;&gt;-->
+<!--&lt;!&ndash;  </div>&ndash;&gt;-->
+<!--&lt;!&ndash;</div>&ndash;&gt;-->
+
+<!--&lt;!&ndash;<script>&ndash;&gt;-->
+<!--&lt;!&ndash;  document.getElementById('login-form').addEventListener('submit', async function (event) {&ndash;&gt;-->
+<!--&lt;!&ndash;    event.preventDefault();&ndash;&gt;-->
+<!--&lt;!&ndash;    const username = document.getElementById('username').value;&ndash;&gt;-->
+<!--&lt;!&ndash;    const password = document.getElementById('password').value;&ndash;&gt;-->
+
+<!--&lt;!&ndash;    const response = await fetch('/login', {&ndash;&gt;-->
+<!--&lt;!&ndash;      method: 'POST',&ndash;&gt;-->
+<!--&lt;!&ndash;      headers: {&ndash;&gt;-->
+<!--&lt;!&ndash;        'Content-Type': 'application/json'&ndash;&gt;-->
+<!--&lt;!&ndash;      },&ndash;&gt;-->
+<!--&lt;!&ndash;      body: JSON.stringify({ username, password })&ndash;&gt;-->
+<!--&lt;!&ndash;    });&ndash;&gt;-->
+
+<!--&lt;!&ndash;    if (response.ok) {&ndash;&gt;-->
+<!--&lt;!&ndash;      alert('Login successful!');&ndash;&gt;-->
+<!--&lt;!&ndash;      window.location.href = 'index.html';&ndash;&gt;-->
+<!--&lt;!&ndash;    } else {&ndash;&gt;-->
+<!--&lt;!&ndash;      alert('Login failed. Please check your credentials and try again.');&ndash;&gt;-->
+<!--&lt;!&ndash;    }&ndash;&gt;-->
+<!--&lt;!&ndash;  });&ndash;&gt;-->
+<!--&lt;!&ndash;</script>&ndash;&gt;-->
+<!--&lt;!&ndash;</body>&ndash;&gt;-->
+<!--&lt;!&ndash;</html>&ndash;&gt;-->
+
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8">-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--  <title>File Management System</title>-->
+<!--  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">-->
+<!--</head>-->
+<!--<body class="container">-->
+<!--<h1 class="my-4">File Management System</h1>-->
+<!--<div class="row">-->
+<!--  <div class="col-md-8">-->
+<!--    <div class="list-group">-->
+<!--      <a href="/view-all-files.html" class="list-group-item list-group-item-action">Просмотр всех файлов</a>-->
+<!--      <a href="/view-file-by-id.html" class="list-group-item list-group-item-action">Просмотр файла по ID</a>-->
+<!--      <a href="/add-file.html" class="list-group-item list-group-item-action">Добавление файла</a>-->
+<!--      <a href="/update-delete-file.html" class="list-group-item list-group-item-action">Обновление/Удаление файла</a>-->
+<!--      <a href="/analyst.html" class="list-group-item list-group-item-action">Аналитика</a>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--  <div class="col-md-4">-->
+<!--    <div class="card">-->
+<!--      <div class="card-body">-->
+<!--        <h5 class="card-title" id="username">User Name</h5>-->
+<!--        <p class="card-text" id="email">Email: example@example.com</p>-->
+<!--        <p class="card-text" id="registration-date">Registration Date: YYYY-MM-DD</p>-->
+<!--        <p class="card-text" id="position">Position: User</p>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
+
+<!--<script>-->
+<!--  function loadUserInfo() {-->
+<!--    fetch('/api/v6/user/')-->
+<!--      .then(response => response.json())-->
+<!--      .then(data => {-->
+<!--        if (data.status === 'success') {-->
+<!--          const user = data.data.user;-->
+<!--          document.getElementById('username').textContent = user.first_name + ' ' + user.second_name;-->
+<!--          document.getElementById('email').textContent = 'Email: ' + user.email;-->
+<!--          document.getElementById('registration-date').textContent = 'Registration Date: ' + user.registration_date.split('T')[0];-->
+<!--          document.getElementById('position').textContent = 'Position: ' + user.position;-->
+<!--        } else {-->
+<!--          console.error('Failed to load user info:', data.message);-->
+<!--        }-->
+<!--      })-->
+<!--      .catch(error => console.error('Error fetching user info:', error));-->
+<!--  }-->
+
+<!--  document.addEventListener('DOMContentLoaded', loadUserInfo);-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Management System</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container">
+<h1 class="my-4">File Management System</h1>
+<div class="row">
+  <div class="col-md-8">
+    <div class="list-group">
+      <a href='/Authors/view-all-files.html' class="list-group-item list-group-item-action">Просмотр всех файлов</a>
+      <a href='/Authors/view-file-by-id.html' class="list-group-item list-group-item-action">Просмотр файла по ID</a>
+      <a href='/Authors/add-file.html' class="list-group-item list-group-item-action">Добавление файла</a>
+      <a href='/Authors/update-delete-file.html' class="list-group-item list-group-item-action">Обновление/Удаление файла</a>
+      <a href='/analyst.html' class="list-group-item list-group-item-action">Аналитика</a>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title" id="username">User Name</h5>
+        <p class="card-text" id="email">Email: example@example.com</p>
+        <p class="card-text" id="registration-date">Registration Date: YYYY-MM-DD</p>
+        <p class="card-text" id="position">Position: User</p>
+        <button id="logout-btn" class="btn btn-danger">Logout</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function loadUserInfo() {
+    fetch('/api/v6/user/')
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          const user = data.data.user;
+          document.getElementById('username').textContent = user.first_name + ' ' + user.second_name;
+          document.getElementById('email').textContent = 'Email: ' + user.email;
+          document.getElementById('registration-date').textContent = 'Registration Date: ' + user.registration_date.split('T')[0];
+          document.getElementById('position').textContent = 'Position: ' + user.position;
+        } else {
+          console.error('Failed to load user info:', data.message);
+        }
+      })
+      .catch(error => console.error('Error fetching user info:', error));
+  }
+
+  document.addEventListener('DOMContentLoaded', loadUserInfo);
+
+  document.getElementById('logout-btn').addEventListener('click', async function() {
+    const response = await fetch('/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+      window.location.href = 'index.html';
+  });
+</script>
+</body>
+</html>

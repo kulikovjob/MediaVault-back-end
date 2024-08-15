@@ -22,7 +22,7 @@ export const getAllComments = catchAsync(
 export const getCommentById = catchAsync(
   async (req: Request, res: Response) => {
     const { commentId } = req.params; // Получаем тип файла из параметров маршрута
-    const comment = await Comment.getCommentById(commentId); // Используем тип файла для получения файлов определенного типа
+    const comment = await Comment.getCommentsByFileId(commentId); // Используем тип файла для получения файлов определенного типа
 
     res
       .status(200)

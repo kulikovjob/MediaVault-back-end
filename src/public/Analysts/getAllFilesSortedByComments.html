@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Type Analytics</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="container mt-5">
+  <div class="d-flex justify-content-between align-items-center my-4">
+    <h1>Популярні файли за коментарями</h1>
+    <a href='/analyst.html' class="btn btn-primary">На головну</a>
+  </div>
+  <div id="chartsContainer" class="row"></div>
+  <h2 class="mt-5">Детальна інформація про файли</h2>
+  <table class="table table-striped mt-3">
+    <thead class="thead-dark">
+    <tr>
+      <th>Ім'я файлу</th>
+      <th>Дата завантаження</th>
+      <th>Автор</th>
+      <th>Тип файлу</th>
+      <th>Кількість коментарів</th>
+      <th>Коментатори</th>
+    </tr>
+    </thead>
+    <tbody id="fileDetailsTable"></tbody>
+  </table>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/v7/view/sorted/comments')
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          const filesByType = {};
+
+          data.data.forEach(file => {
+            if (parseInt(file.comment_count) > 0) {
+              // Прямое форматирование даты перед добавлением в объект
+              const formattedDate = new Date(file.upload_date).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric'
+              });
+              if (!filesByType[file.file_type]) {
+                filesByType[file.file_type] = [];
+              }
+              filesByType[file.file_type].push({
+                file_name: file.file_name,
+                comment_count: file.comment_count,
+                uploader_name: file.uploader_name,
+                commenters_names: file.commenters_names,
+                file_path: file.file_path,
+                upload_date: formattedDate
+              });
+            }
+          });
+
+          const chartsContainer = document.getElementById('chartsContainer');
+          Object.keys(filesByType).forEach(type => {
+            if (filesByType[type].length > 0) {
+              const canvas = document.createElement('canvas');
+              canvas.id = type.replaceAll(' ', '_') + '_chart';
+              chartsContainer.appendChild(canvas);
+              const ctx = canvas.getContext('2d');
+              new Chart(ctx, {
+                type: 'bar',
+                data: {
+                  labels: filesByType[type].map(file => file.file_name),
+                  datasets: [{
+                    label: `Графік коментарів для типу файлу: ${type}`,
+                    data: filesByType[type].map(file => file.comment_count),
+                    backgroundColor: 'rgba(75, 102, 192, 0.2)',
+                    borderColor: 'rgba(72, 102, 192, 1)',
+                    borderWidth: 1
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  plugins: {
+                    tooltip: {
+                      callbacks: {
+                        label: function(tooltipItem) {
+                          const file = filesByType[type][tooltipItem.dataIndex];
+                          return `${file.file_name}: ${file.comment_count} коментарів\nАвтор: ${file.uploader_name}\nКоментатори: ${file.commenters_names}`;
+                        }
+                      }
+                    },
+                    legend: {
+                      display: true,
+                      position: 'top'
+                    }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      title: {
+                        display: true,
+                        text: 'Кількість коментарів'
+                      }
+                    }
+                  }
+                }
+              });
+            }
+          });
+
+          // Заполнение таблицы подробными данными о файле
+          const tableBody = document.getElementById('fileDetailsTable');
+          data.data.forEach(file => {
+            if (parseInt(file.comment_count) > 0) {
+              const row = tableBody.insertRow();
+              const formattedDate = new Date(file.upload_date).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric'
+              });
+              row.insertCell(0).textContent = file.file_name;
+              row.insertCell(1).textContent = formattedDate;  // Убедимся, что дата отформатирована здесь
+              row.insertCell(2).textContent = file.uploader_name;
+              row.insertCell(3).textContent = file.file_type;
+              row.insertCell(4).textContent = file.comment_count;
+              row.insertCell(5).textContent = file.commenters_names;
+            }
+          });
+        } else {
+          console.error('Failed to load data:', data.message);
+        }
+      })
+      .catch(error => console.error('Error fetching data:', error));
+  });
+</script>
+
+
+
+</body>
+</html>

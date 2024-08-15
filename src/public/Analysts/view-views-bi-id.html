@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View File by ID</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+      .card { cursor: pointer; }
+  </style>
+</head>
+<body class="container">
+<div class="d-flex justify-content-between align-items-center my-4">
+  <a href='/Authors/error.html' class="btn btn-danger" id="error-link" style="display: none;">View Error Details</a>
+</div>
+
+<div class="d-flex justify-content-between align-items-center my-4">
+  <h1>View File by ID</h1>
+  <a href='/analyst.html' class="btn btn-primary">Back to Analytics</a>
+</div>
+<div id="file-list" class="row"></div>
+
+<div class="modal fade" id="fileModal" tabindex="-1" role="dialog" aria-labelledby="fileModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="fileModalLabel">File Details</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="fileModalBody">
+        <!-- File details or error message will be inserted here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const fileTypes = {
+    "Image": 1,
+    "Video": 2,
+    "Audio": 3,
+    "Document": 4
+  };
+
+  fetch('/api/v1/media/files/')
+    .then(response => response.json())
+    .then(data => {
+      const fileList = document.getElementById('file-list');
+      if (data.status === 'success') {
+        data.data.media.forEach(file => {
+          const col = document.createElement('div');
+          col.className = 'col-md-4';
+          col.innerHTML = `
+            <div class="card mb-4 shadow-sm" data-filetype-id="${fileTypes[file.file_type]}" data-file-id="${file.file_id}">
+              <div class="card-body">
+                <h5 class="card-title">${file.file_name}</h5>
+                <p class="card-text">ID: ${file.file_id}</p>
+                <p class="card-text">Upload Date: ${new Date(file.upload_date).toLocaleDateString()}</p>
+                <p class="card-text">Author: ${file.author_first_name} ${file.author_second_name}</p>
+                <p class="card-text">File Type: ${file.file_type}</p>
+                <p class="card-text">Rating: ${file.file_rating}</p>
+                <button class="btn btn-primary view-details">View Details</button>
+              </div>
+            </div>
+          `;
+          col.querySelector('.view-details').addEventListener('click', () => {
+            fetchFileDetails(file.file_id, file.file_type);
+          });
+          fileList.appendChild(col);
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      redirectToErrorPage(error.message);
+    });
+
+  function fetchFileDetails(fileId, fileType) {
+    const fileTypeId = fileTypes[fileType];
+    fetch(`/api/v7/views/${fileTypeId}/${fileId}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to retrieve file details');
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.status === 'success') {
+          const file = data.data[0];
+          const modalBody = document.getElementById('fileModalBody');
+          modalBody.innerHTML = `
+            <h5 class="card-title">${file.file_name}</h5>
+            <p class="card-text">ID: ${file.file_id}</p>
+            <p class="card-text">View Count: ${file.view_count}</p>
+          `;
+          $('#fileModal').modal('show');
+        } else {
+          throw new Error('Failed to retrieve file details');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        displayModalError(error.message);
+      });
+  }
+
+  function displayModalError(errorMessage) {
+    const modalBody = document.getElementById('fileModalBody');
+    modalBody.innerHTML = `
+      <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">Failed to retrieve file details</h4>
+        <p>${errorMessage}</p>
+      </div>
+    `;
+    $('#fileModal').modal('show');
+  }
+
+  function redirectToErrorPage(errorMessage) {
+    const errorLink = document.getElementById('error-link');
+    errorLink.href = `/error.html?message=${errorMessage}`;
+    errorLink.style.display = 'inline-block';
+    setTimeout(() => {
+      window.location.href = errorLink.href;
+    }, 3000); // Redirect after 3 seconds
+  }
+</script>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+</body>
+</html>

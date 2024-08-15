@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error Page</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container">
+<div class="alert alert-danger mt-5" role="alert">
+  <h4 class="alert-heading">Oops! An error occurred.</h4>
+  <p class="mb-0" id="error-message">We're sorry, but an error occurred while processing your request. Please try again later.</p>
+  <hr>
+  <a href='../Authors.html' class="btn btn-primary">Return to Home Page</a>
+</div>
+
+<script>
+  // Отримуємо параметри запиту URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const errorMessage = urlParams.get('message');
+
+  // Якщо errorMessage не порожнє, встановлюємо його в елемент з id="error-message"
+  if (errorMessage) {
+    document.getElementById('error-message').textContent = errorMessage;
+  }
+</script>
+
+</body>
+</html>

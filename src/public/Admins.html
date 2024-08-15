@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administrator Dashboard</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="container">
+<h1 class="my-4">Aдміністративна панель</h1>
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card-deck">
+      <div class="card text-white bg-primary mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Керування Super Metadata</h5>
+          <p class="card-text">Керування суперметаданними в системі</p>
+          <a href='/Admins/manage-super-metadata.html' class="btn btn-light">Перейти</a>
+        </div>
+      </div>
+      <div class="card text-white bg-warning mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Керування File Type</h5>
+          <p class="card-text">Керування типами файлів в системі</p>
+          <a href='/Admins/manage-file-type.html' class="btn btn-light">Перейти</a>
+        </div>
+      </div>
+    </div>
+    <div class="card text-white bg-success mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Керування Users</h5>
+        <p class="card-text">Перегляньте або видаліть користувачів, які є в системі</p>
+        <a href='/Admins/manage-users.html' class="btn btn-light">Перейти</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card text-white bg-secondary mb-3">
+      <div class="card-body">
+        <h5 class="card-title" id="username">User Name</h5>
+        <p class="card-text" id="email">Email: admin@example.com</p>
+        <p class="card-text" id="registration-date">Registration Date: YYYY-MM-DD</p>
+        <p class="card-text" id="position">Position: User</p>
+        <button id="logout-btn" class="btn btn-danger">Вихід</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    loadUserInfo(); // Вызов функции loadUserInfo при загрузке документа
+  });
+
+  function loadUserInfo() {
+    fetch('/api/v6/user/')
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          const user = data.data.user;
+          document.getElementById('username').textContent = user.first_name + ' ' + user.second_name;
+          document.getElementById('email').textContent = 'Пошта: ' + user.email;
+          document.getElementById('registration-date').textContent = 'Дата реєстрації: ' + user.registration_date.split('T')[0];
+          document.getElementById('position').textContent = 'Позиція: ' + user.position;
+        } else {
+          console.error('Failed to load user info:', data.message);
+        }
+      })
+      .catch(error => console.error('Error fetching user info:', error));
+  }
+
+  document.getElementById('logout-btn').addEventListener('click', async function() {
+    const response = await fetch('/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    window.location.href = 'index.html';
+  });
+</script>
+</body>
+</html>

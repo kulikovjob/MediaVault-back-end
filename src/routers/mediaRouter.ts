@@ -5,13 +5,16 @@ import {
   getMediaFileById,
   addNewFile,
   deleteFileById,
-  updateFile
+  updateFile,
+  getViewUserFiles
 } from '../controllers/mediaController'
 const router = Router();
 
 // Media
 router.route('/files/')
   .get(getAllMediaFilesInfo)
+
+router.route('/files/user/').get(getViewUserFiles)
 
 router.route('/files/:filetypeId/')
   .get(getAllMediaFiles)

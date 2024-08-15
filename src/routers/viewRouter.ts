@@ -9,11 +9,15 @@ import {
   getPopularGenresByPeriod,
   getPopularTagsByPeriod,
   getAuthorsByPopularity,
-  getSortedFilesByViews
+  getSortedFilesByViews,
+  getAllFilesSortedByComments
 } from '../controllers/viewController';
 
 router.route('/views/:filetypeId/:fileId')
   .get(getViewsByFileId)
+
+router.route('/view/sorted/comments')
+  .get(getAllFilesSortedByComments)
 
 router.route('/views/')
   .post(getViewsByPeriod)

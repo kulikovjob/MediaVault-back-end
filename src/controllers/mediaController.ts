@@ -21,6 +21,16 @@ export const getAllMediaFilesInfo = catchAsync(
       .json({ status: 'success', length: media.length, data: { media } });
   },
 );
+
+export const getViewUserFiles = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const media = await Media.getViewUserFiles();
+
+    res
+      .status(200)
+      .json({ status: 'success', length: media.length, data: { media } });
+  },
+);
 export const getAllMediaFiles = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { filetypeId } = req.params;

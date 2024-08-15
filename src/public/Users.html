@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+      .card:hover {
+          transform: scale(1.03);
+          box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+      }
+      .card-body {
+          transition: transform 0.3s, box-shadow 0.3s;
+      }
+      .card {
+          margin-bottom: 20px;
+      }
+  </style>
+</head>
+<body class="container">
+<h1 class="my-4">Панель користувача</h1>
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card-deck">
+      <div class="card text-white bg-primary mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Перегляд файлів</h5>
+          <p class="card-text">Перегляньте список всіх доступних файлів та їх коментарі</p>
+          <a href='/Users/view_all_files.html' class="btn btn-light">Перейти</a>
+        </div>
+      </div>
+      <div class="card text-white bg-secondary mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Переглянути детальну інформацію про файл</h5>
+          <p class="card-text">Перегляньте детальну інформацію про кожен файл</p>
+          <a href='/Users/view_file_by_id.html' class="btn btn-light">Перейти</a>
+        </div>
+      </div>
+      <div class="card text-white bg-success mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Додавання коментарів</h5>
+          <p class="card-text">Додайте коментарі до файлів, які Ви переглядаєте</p>
+          <a href='/Users/add_comment_to_file.html' class="btn btn-light">Перейти</a>
+        </div>
+      </div>
+      <!-- Здесь можно добавить другие карточки для новых функций -->
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card text-white bg-dark mb-3">
+      <div class="card-body">
+        <h5 class="card-title" id="username">User Name</h5>
+        <p class="card-text" id="email">Email: example@example.com</p>
+        <p class="card-text" id="registration-date">Registration Date: YYYY-MM-DD</p>
+        <p class="card-text" id="position">Position: User</p>
+        <button id="logout-btn" class="btn btn-danger">Вихід</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function loadUserInfo() {
+    fetch('/api/v6/user/')
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          const user = data.data.user;
+          document.getElementById('username').textContent = user.first_name + ' ' + user.second_name;
+          document.getElementById('email').textContent = 'Пошта: ' + user.email;
+          document.getElementById('registration-date').textContent = 'Дата реєстрації: ' + user.registration_date.split('T')[0];
+          document.getElementById('position').textContent = 'Позиція: ' + user.position;
+        } else {
+          console.error('Failed to load user info:', data.message);
+        }
+      })
+      .catch(error => console.error('Error fetching user info:', error));
+  }
+
+  document.addEventListener('DOMContentLoaded', loadUserInfo);
+
+  document.getElementById('logout-btn').addEventListener('click', async function() {
+    const response = await fetch('/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    window.location.href = 'index.html';
+  });
+</script>
+</body>
+</html>

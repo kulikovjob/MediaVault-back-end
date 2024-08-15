@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Типи файлів</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div class="container mt-5">
+  <div class="d-flex justify-content-between align-items-center my-4">
+    <h1>Типи файлів</h1>
+    <div>
+      <button class="btn btn-success" onclick="showAddModal()">Додати тип файлу</button>
+      <a href='/Admins.html' class="btn btn-primary">На головну</a>
+    </div>
+  </div>
+  <div id="alertContainer"></div> <!-- Контейнер для сповіщень -->
+  <div id="fileTypeCards" class="row">
+    <!-- Тут будуть карточки типів файлів -->
+  </div>
+</div>
+
+<!-- Модальне вікно для оновлення -->
+<div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="updateModalLabel">Оновити тип файлу</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="updateForm">
+          <div class="form-group">
+            <label for="fileTypeName">Нова назва типу файлу:</label>
+            <input type="text" class="form-control" id="fileTypeName" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрити</button>
+        <button type="button" class="btn btn-primary" onclick="submitUpdate()">Оновити</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальне вікно для додавання нового типу файлу -->
+<div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addModalLabel">Додати новий тип файлу</h5>
+      </div>
+      <div class="modal-body">
+        <form id="addForm">
+          <div class="form-group">
+            <label for="newFileTypeName">Назва типу файлу:</label>
+            <input type="text" class="form-control" id="newFileTypeName" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрити</button>
+        <button type="button" the="submit" class="btn btn-primary" onclick="submitNewFileType()">Додати</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentFileTypeId = null;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    fetch('/api/v4/filetype')
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          const cardsContainer = document.getElementById('fileTypeCards');
+          data.data.fileTypes.forEach(fileType => {
+            const cardHTML = `
+              <div class="col-md-4 mb-4">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title">${fileType.type_name}</h5>
+                    <p class="card-text">ID: ${fileType.file_type_id}</p>
+                    <button onclick="showUpdateModal(${fileType.file_type_id})" class="btn btn-primary">Оновити</button>
+                    <button onclick="deleteFileType(${fileType.file_type_id})" class="btn btn-danger">Видалити</button>
+                  </div>
+                </div>
+              </div>
+            `;
+            cardsContainer.innerHTML += cardHTML;
+          });
+        }
+      })
+      .catch(error => console.error('Error fetching data:', error));
+  });
+
+  function showAlert(message, isSuccess = true) {
+    const alertContainer = document.getElementById('alertContainer');
+    const alertType = isSuccess ? 'alert-success' : 'alert-danger';
+    alertContainer.innerHTML = `
+    <div class="alert ${alertType} alert-dismissible fade show" role="alert">
+      ${message}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  `;
+
+    // Знаходимо кнопку закриття і встановлюємо обробник подій на неї
+    const closeButton = alertContainer.querySelector('.close');
+    closeButton.onclick = function() {
+      // Оновлення сторінки після закриття сповіщення
+      window.location.reload();
+    };
+  }
+
+
+  function showUpdateModal(fileTypeId) {
+    currentFileTypeId = fileTypeId;
+    $('#updateModal').modal('show');
+  }
+
+  function submitUpdate() {
+    const newName = document.getElementById('fileTypeName').value;
+    if (newName) {
+      fetch(`/api/v4/filetype/${currentFileTypeId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ type_name: newName })
+      })
+        .then(response => {
+          if (response.ok) {
+            showAlert("Тип файлу оновлено!", true);
+          } else {
+            showAlert("Не вдалося оновити тип файлу.", false);
+          }
+        })
+        .catch(error => {
+          showAlert('Error updating file type: ' + error.message, false);
+        });
+      $('#updateModal').modal('hide');
+    }
+  }
+
+  function deleteFileType(fileTypeId) {
+    fetch(`/api/v4/filetype/${fileTypeId}`, {
+      method: 'DELETE'
+    })
+      .then(response => {
+        if (response.ok) {
+          showAlert("Тип файлу видалено!", true);
+        } else {
+          showAlert("Не вдалося видалити тип файлу.", false);
+        }
+      })
+      .catch(error => {
+        showAlert('Error deleting file type: ' + error.message, false);
+      });
+  }
+
+  function showAddModal() {
+    $('#addModal').modal('show');
+  }
+
+  function submitNewFileType() {
+    const newName = document.getElementById('newFileTypeName').value;
+    if (newName) {
+      fetch('/api/v4/filetype', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ type_name: newName })
+      })
+        .then(response => {
+          if (response.ok) {
+            showAlert("Новий тип файлу додано!", true);
+          } else {
+            showAlert("Не вдалося додати новий тип файлу.", false);
+          }
+        })
+        .catch(error => {
+          showAlert('Error adding new file type: ' + error.message, false);
+        });
+      $('#addModal').modal('hide');
+    }
+  }
+</script>
+
+</body>
+</html>
